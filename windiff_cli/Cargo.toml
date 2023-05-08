@@ -4,3 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+structopt = { version = "0.3", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tokio = { version = "1.28.0", features = ["full"] }
+futures = "0.3"
+url = "2.3"
+reqwest = { version = "0.11", features = ["stream"] }
+async-compression = { version = "0.3", features = ["gzip", "tokio"] }
+tempdir = "0.3"
