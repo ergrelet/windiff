@@ -15,6 +15,8 @@ pub enum WinDiffError {
     UrlParseError(#[from] url::ParseError),
     #[error("reqwest error: {0}")]
     ReqwestError(#[from] reqwest::Error),
+    #[error("goblin error: {0}")]
+    GoblinError(#[from] goblin::error::Error),
     #[error("PE file not found in the index")]
     FileNotFoundInIndex,
 }

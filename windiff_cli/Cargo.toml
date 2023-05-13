@@ -14,3 +14,5 @@ url = "2.3"
 reqwest = { version = "0.11", features = ["stream"] }
 async-compression = { version = "0.3", features = ["gzip", "tokio"] }
 tempdir = "0.3"
+goblin = "0.6"
+enumflags2 = { version = "0.7", features = ["serde"] }

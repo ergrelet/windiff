@@ -33,6 +33,9 @@ We want to be able to fetch one or multiple binaries, in one or multiple version
 ```json
 {
   "oses": [{ "version": "21H1", "update": "BASE", "architecture": "amd64" }],
-  "binaries": ["kernel32.dll", "user32.dll"]
+  "binaries": {
+    "kernel32.dll": { "extracted_information": ["EXPORTS"] },
+    "user32.dll": { "extracted_information": ["EXPORTS"] }
+  }
 }
 ```

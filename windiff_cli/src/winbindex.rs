@@ -17,9 +17,11 @@ const MSDL_FILE_DOWNLOAD_BASE_URL: &str = "https://msdl.microsoft.com/download/s
 #[derive(Debug)]
 pub struct DownloadedPEVersion {
     pub path: PathBuf,
+    pub original_name: String,
     pub os_version: String,
     pub os_update: String,
     pub architecture: OSArchitecture,
+    pub pe_version: String,
 }
 
 pub async fn get_remote_index_for_pe(pe_name: &str) -> Result<serde_json::Value> {
@@ -66,9 +68,11 @@ pub async fn download_pe_version(
 
     Ok(DownloadedPEVersion {
         path: output_file_path,
+        original_name: pe_name.to_string(),
         os_version: os_version.to_string(),
         os_update: os_update.to_string(),
         architecture: *os_architecture,
+        pe_version: pe_info.version.unwrap_or_default(),
     })
 }
 
@@ -85,6 +89,7 @@ struct FileInformation {
     machine_type: u32,
     virtual_size: u64,
     timestamp: u32,
+    version: Option<String>,
     // Note(ergrelet): there are other fields but we don't use them at the moment, so we ignore them
 }
 

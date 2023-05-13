@@ -1,13 +1,15 @@
 use crate::error::Result;
 
-use serde::Deserialize;
-use std::{io::Read, path::Path};
+use enumflags2::{bitflags, BitFlag, BitFlags};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer};
+use std::{collections::BTreeMap, path::Path};
+use tokio::{fs::File, io::AsyncReadExt};
 
 /// TODO
 #[derive(Deserialize)]
 pub struct WinDiffConfiguration {
     pub oses: Vec<OSDescription>,
-    pub binaries: Vec<BinaryDescription>,
+    pub binaries: BTreeMap<String, BinaryDescription>,
 }
 
 /// TODO
@@ -32,24 +34,28 @@ pub enum OSArchitecture {
 /// Binary description
 #[derive(Deserialize)]
 pub struct BinaryDescription {
-    pub name: String,
-    pub extracted_information: Vec<BinaryExtractedInformation>,
+    #[serde(deserialize_with = "deserialize_flags")]
+    pub extracted_information: BinaryExtractedInformation,
 }
 
-#[derive(Deserialize)]
+#[bitflags]
+#[repr(u16)]
+#[derive(Copy, Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum BinaryExtractedInformation {
+pub enum BinaryExtractedInformationFlags {
     Exports,
 }
 
+pub type BinaryExtractedInformation = BitFlags<BinaryExtractedInformationFlags>;
+
 impl WinDiffConfiguration {
-    pub fn from_file(path: &Path) -> Result<Self> {
+    pub async fn from_file(path: &Path) -> Result<Self> {
         // Open file
-        let mut file = std::fs::File::open(path)?;
+        let mut file = File::open(path).await?;
 
         // Read file
         let mut file_data = vec![];
-        let _read_bytes = file.read_to_end(&mut file_data)?;
+        let _read_bytes = file.read_to_end(&mut file_data).await?;
 
         // Parse JSON and return result
         Ok(serde_json::from_slice(&file_data)?)
@@ -76,4 +82,13 @@ impl OSArchitecture {
             OSArchitecture::Arm64 => 0xaa64,
         }
     }
+}
+
+pub fn deserialize_flags<'de, D, T>(d: D) -> std::result::Result<BitFlags<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: BitFlag + DeserializeOwned,
+{
+    let flags = Vec::<T>::deserialize(d)?;
+    Ok(BitFlags::from_iter(flags))
 }
