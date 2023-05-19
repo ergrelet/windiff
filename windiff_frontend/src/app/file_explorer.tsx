@@ -28,17 +28,18 @@ export default function FileExplorer() {
     jsonFetcher
   );
 
-  const architecture = "amd64";
+  let fileName;
   if (indexData) {
-    if (OSVersion.length == 0) {
-      OSVersion = indexData.os_versions[0];
+    if (!OSVersion) {
+      OSVersion = osVersionToPathSuffix(indexData.oses[0]);
     }
 
     if (binary.length == 0) {
       binary = indexData.binaries[0];
     }
+
+    fileName = `${binary}_${OSVersion}.json`;
   }
-  const fileName = `${binary}_${OSVersion}_${architecture}.json`;
 
   let { data: fileData, error: fileError } = useSWR(
     `/${fileName}`,
@@ -52,24 +53,23 @@ export default function FileExplorer() {
     return <div>Loading...</div>;
   }
 
-  if (!fileData) {
-    fileData = { exports: [], symbols: [], types: [] };
-  }
   // Prepare the appropriate data
   let data;
-  switch (currentTabId) {
-    case Tab.Exports:
-      data = fileData.exports.join("\n");
-      break;
-    case Tab.Symbols:
-      data = fileData.symbols.join("\n");
-      break;
-    // Types
-    case Tab.Types:
-      data = fileData.types.join("\n");
-      break;
-    default:
-      break;
+  if (!fileData) {
+    data = fileError ? "" : "Loading...";
+  } else {
+    switch (currentTabId) {
+      default:
+      case Tab.Exports:
+        data = fileData.exports.join("\n");
+        break;
+      case Tab.Symbols:
+        data = fileData.symbols.join("\n");
+        break;
+      case Tab.Types:
+        data = fileData.types.join("\n");
+        break;
+    }
   }
 
   return (
@@ -79,7 +79,9 @@ export default function FileExplorer() {
         <div className="grid grid-cols-2 gap-2">
           <DarkListbox
             value={OSVersion}
-            options={indexData.os_versions}
+            options={indexData.oses.map((osVersion: any) =>
+              osVersionToPathSuffix(osVersion)
+            )}
             onChange={(value) => setOSVersion(value)}
           />
 
@@ -93,4 +95,12 @@ export default function FileExplorer() {
       </div>
     </div>
   );
+}
+
+function osVersionToHumanString(osVersion: any): string {
+  return `${osVersion.version} ${osVersion.architecture} (${osVersion.update})`;
+}
+
+function osVersionToPathSuffix(osVersion: any): string {
+  return `${osVersion.version}_${osVersion.update}_${osVersion.architecture}`;
 }

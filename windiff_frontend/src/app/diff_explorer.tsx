@@ -21,8 +21,7 @@ export default function DiffExplorer() {
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
   let [leftOSVersion, setLeftOSVersion] = useState("");
   let [rightOSVersion, setRightOSVersion] = useState("");
-  let [leftBinary, setLeftBinary] = useState("");
-  let [rightBinary, setRightBinary] = useState("");
+  let [binary, setBinary] = useState("");
 
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR(
@@ -30,24 +29,22 @@ export default function DiffExplorer() {
     jsonFetcher
   );
 
-  const architecture = "amd64";
+  let leftFileName;
+  let rightFileName;
   if (indexData) {
     if (leftOSVersion.length == 0) {
-      leftOSVersion = indexData.os_versions[0];
+      leftOSVersion = osVersionToPathSuffix(indexData.oses[0]);
     }
-    if (leftBinary.length == 0) {
-      leftBinary = indexData.binaries[0];
+    if (rightOSVersion.length == 0) {
+      rightOSVersion = osVersionToPathSuffix(indexData.oses[0]);
+    }
+    if (binary.length == 0) {
+      binary = indexData.binaries[0];
     }
 
-    if (rightOSVersion.length == 0) {
-      rightOSVersion = indexData.os_versions[0];
-    }
-    if (rightBinary.length == 0) {
-      rightBinary = indexData.binaries[0];
-    }
+    leftFileName = `${binary}_${leftOSVersion}.json`;
+    rightFileName = `${binary}_${rightOSVersion}.json`;
   }
-  const leftFileName = `${leftBinary}_${leftOSVersion}_${architecture}.json`;
-  const rightFileName = `${rightBinary}_${rightOSVersion}_${architecture}.json`;
 
   let { data: leftFileData, error: leftFileError } = useSWR(
     `/${leftFileName}`,
@@ -66,61 +63,68 @@ export default function DiffExplorer() {
     return <div>Loading...</div>;
   }
 
-  if (!leftFileData) {
-    leftFileData = { exports: [], symbols: [], types: [] };
-  }
-  if (!rightFileData) {
-    rightFileData = { exports: [], symbols: [], types: [] };
-  }
-
   // Prepare the appropriate data
   let leftData;
   let rightData;
-  switch (currentTabId) {
-    case Tab.Exports:
-      leftData = leftFileData.exports.join("\n");
-      rightData = rightFileData.exports.join("\n");
-      break;
-    case Tab.Symbols:
-      leftData = leftFileData.symbols.join("\n");
-      rightData = rightFileData.symbols.join("\n");
-      break;
-    // Types
-    case Tab.Types:
-      leftData = leftFileData.types.join("\n");
-      rightData = rightFileData.types.join("\n");
-      break;
-    default:
-      break;
+  if (!leftFileData) {
+    leftData = leftFileError ? "" : "Loading...";
+  } else {
+    switch (currentTabId) {
+      default:
+      case Tab.Exports:
+        leftData = leftFileData.exports.join("\n");
+        break;
+      case Tab.Symbols:
+        leftData = leftFileData.symbols.join("\n");
+        break;
+      case Tab.Types:
+        leftData = leftFileData.types.join("\n");
+        break;
+    }
+  }
+
+  if (!rightFileData) {
+    rightData = rightFileError ? "" : "Loading...";
+  } else {
+    switch (currentTabId) {
+      default:
+      case Tab.Exports:
+        rightData = rightFileData.exports.join("\n");
+        break;
+      case Tab.Symbols:
+        rightData = rightFileData.symbols.join("\n");
+        break;
+      case Tab.Types:
+        rightData = rightFileData.types.join("\n");
+        break;
+    }
   }
 
   return (
     <div className="flex flex-row justify-center items-center">
       <div className="max-w-6xl w-full space-y-2 py-2 pl-10 pr-10">
         <DarkTabs tabs={tabs} onChange={(value) => setCurrentTabId(value)} />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <DarkListbox
             value={leftOSVersion}
-            options={indexData.os_versions}
+            options={indexData.oses.map((osVersion: any) =>
+              osVersionToPathSuffix(osVersion)
+            )}
             onChange={(value) => setLeftOSVersion(value)}
           />
 
           <DarkListbox
             value={rightOSVersion}
-            options={indexData.os_versions}
+            options={indexData.oses.map((osVersion: any) =>
+              osVersionToPathSuffix(osVersion)
+            )}
             onChange={(value) => setRightOSVersion(value)}
           />
 
           <DarkListbox
-            value={leftBinary}
+            value={binary}
             options={indexData.binaries}
-            onChange={(value) => setLeftBinary(value)}
-          />
-
-          <DarkListbox
-            value={rightBinary}
-            options={indexData.binaries}
-            onChange={(value) => setRightBinary(value)}
+            onChange={(value) => setBinary(value)}
           />
         </div>
         <DiffView
@@ -152,4 +156,12 @@ function DiffView({
       modified={newRevision}
     />
   );
+}
+
+function osVersionToHumanString(osVersion: any): string {
+  return `${osVersion.version} ${osVersion.architecture} (${osVersion.update})`;
+}
+
+function osVersionToPathSuffix(osVersion: any): string {
+  return `${osVersion.version}_${osVersion.update}_${osVersion.architecture}`;
 }
