@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import TopNavBar from "./navbar";
 import DiffExplorer from "./diff_explorer";
+import FileExplorer from "./file_explorer";
 
 enum NavigationButton {
   Browsing = 0,
@@ -32,7 +33,7 @@ export default function Home() {
   switch (currentNavigationButton) {
     default:
     case NavigationButton.Browsing:
-      // TODO
+      mainComponent = <FileExplorer />;
       break;
     case NavigationButton.Diffing:
       mainComponent = <DiffExplorer />;

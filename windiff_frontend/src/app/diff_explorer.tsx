@@ -95,38 +95,40 @@ export default function DiffExplorer() {
   }
 
   return (
-    <div className="w-full space-y-2 py-2 pl-10 pr-10">
-      <DarkTabs tabs={tabs} onChange={(value) => setCurrentTabId(value)} />
-      <div className="grid grid-cols-2 gap-2">
-        <DarkListbox
-          value={leftOSVersion}
-          options={indexData.os_versions}
-          onChange={(value) => setLeftOSVersion(value)}
-        />
+    <div className="flex flex-row justify-center items-center">
+      <div className="max-w-6xl w-full space-y-2 py-2 pl-10 pr-10">
+        <DarkTabs tabs={tabs} onChange={(value) => setCurrentTabId(value)} />
+        <div className="grid grid-cols-2 gap-2">
+          <DarkListbox
+            value={leftOSVersion}
+            options={indexData.os_versions}
+            onChange={(value) => setLeftOSVersion(value)}
+          />
 
-        <DarkListbox
-          value={rightOSVersion}
-          options={indexData.os_versions}
-          onChange={(value) => setRightOSVersion(value)}
-        />
+          <DarkListbox
+            value={rightOSVersion}
+            options={indexData.os_versions}
+            onChange={(value) => setRightOSVersion(value)}
+          />
 
-        <DarkListbox
-          value={leftBinary}
-          options={indexData.binaries}
-          onChange={(value) => setLeftBinary(value)}
-        />
+          <DarkListbox
+            value={leftBinary}
+            options={indexData.binaries}
+            onChange={(value) => setLeftBinary(value)}
+          />
 
-        <DarkListbox
-          value={rightBinary}
-          options={indexData.binaries}
-          onChange={(value) => setRightBinary(value)}
+          <DarkListbox
+            value={rightBinary}
+            options={indexData.binaries}
+            onChange={(value) => setRightBinary(value)}
+          />
+        </div>
+        <DiffView
+          oldRevision={leftData}
+          newRevision={rightData}
+          language="text"
         />
       </div>
-      <DiffView
-        oldRevision={leftData}
-        newRevision={rightData}
-        language="text"
-      />
     </div>
   );
 }
@@ -142,7 +144,7 @@ function DiffView({
 }) {
   return (
     <DiffEditor
-      height="70vh"
+      height="63vh"
       theme="vs-dark"
       originalLanguage={language}
       modifiedLanguage={language}
