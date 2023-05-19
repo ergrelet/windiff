@@ -7,7 +7,7 @@ mod winbindex;
 use std::path::Path;
 
 use configuration::{BinaryExtractedInformation, BinaryExtractedInformationFlags, OSDescription};
-use database::BinaryDatabase;
+use database::{BinaryDatabase, DatabaseIndex, OSVersion};
 use futures::stream::StreamExt;
 use goblin::{pe, Object};
 use structopt::StructOpt;
@@ -119,6 +119,9 @@ async fn generate_databases(
     .collect::<()>()
     .await;
 
+    // Generate database index
+    generate_index(cfg, output_directory).await?;
+
     Ok(())
 }
 
@@ -184,6 +187,33 @@ async fn generate_database_for_pe(
 
     // Create file and copy JSON data
     let mut output_file = File::create(output_path.as_ref()).await?;
+    tokio::io::copy(&mut json_data.as_slice(), &mut output_file).await?;
+
+    Ok(())
+}
+
+async fn generate_index(cfg: &WinDiffConfiguration, output_directory: &Path) -> Result<()> {
+    let index = DatabaseIndex {
+        // Map configuration's OSes
+        oses: cfg
+            .oses
+            .iter()
+            .map(|os| OSVersion {
+                version: os.version.clone(),
+                update: os.update.clone(),
+                architecture: os.architecture.to_str().to_string(),
+            })
+            .collect(),
+        // Map configuration's binaries
+        binaries: cfg.binaries.keys().cloned().collect(),
+    };
+
+    // Serialize index
+    let json_data = serde_json::to_vec(&index)?;
+
+    // Create file and copy JSON data
+    let output_path = output_directory.join("index.json");
+    let mut output_file = File::create(output_path).await?;
     tokio::io::copy(&mut json_data.as_slice(), &mut output_file).await?;
 
     Ok(())
