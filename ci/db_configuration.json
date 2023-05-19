@@ -7,11 +7,11 @@
     { "version": "11-22H2", "update": "BASE", "architecture": "amd64" }
   ],
   "binaries": {
-    "ntoskrnl.exe": { "extracted_information": ["EXPORTS"] },
-    "win32k.sys": { "extracted_information": ["EXPORTS"] },
-    "ntdll.dll": { "extracted_information": ["EXPORTS"] },
-    "win32u.dll": { "extracted_information": ["EXPORTS"] },
-    "kernel32.dll": { "extracted_information": ["EXPORTS"] },
-    "user32.dll": { "extracted_information": ["EXPORTS"] }
+    "ntoskrnl.exe": { "extracted_information": ["EXPORTS", "DEBUG_SYMBOLS"] },
+    "win32k.sys": { "extracted_information": ["EXPORTS", "DEBUG_SYMBOLS"] },
+    "ntdll.dll": { "extracted_information": ["EXPORTS", "DEBUG_SYMBOLS"] },
+    "win32u.dll": { "extracted_information": ["EXPORTS", "DEBUG_SYMBOLS"] },
+    "kernel32.dll": { "extracted_information": ["EXPORTS", "DEBUG_SYMBOLS"] },
+    "user32.dll": { "extracted_information": ["EXPORTS", "DEBUG_SYMBOLS"] }
   }
 }

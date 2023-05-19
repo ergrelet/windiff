@@ -41,9 +41,10 @@ pub struct BinaryDescription {
 #[bitflags]
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum BinaryExtractedInformationFlags {
     Exports,
+    DebugSymbols,
 }
 
 pub type BinaryExtractedInformation = BitFlags<BinaryExtractedInformationFlags>;

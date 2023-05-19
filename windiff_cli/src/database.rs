@@ -18,7 +18,10 @@ pub struct OSVersion {
 #[derive(Serialize, Debug, Default)]
 pub struct BinaryDatabase {
     pub metadata: BinaryMetadata,
+    /// Exported symbols
     pub exports: BTreeSet<String>,
+    /// Debug symbols
+    pub symbols: BTreeSet<String>,
 }
 
 #[derive(Serialize, Debug, Default)]

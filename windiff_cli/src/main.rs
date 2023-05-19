@@ -2,12 +2,14 @@ mod cli;
 mod configuration;
 mod database;
 mod error;
+mod pdb;
 mod winbindex;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use configuration::{BinaryExtractedInformation, BinaryExtractedInformationFlags, OSDescription};
 use database::{BinaryDatabase, DatabaseIndex, OSVersion};
+use error::WinDiffError;
 use futures::stream::StreamExt;
 use goblin::{pe, Object};
 use structopt::StructOpt;
@@ -29,10 +31,16 @@ async fn main() -> Result<()> {
     let output_directory = tmp_directory.path();
     let downloaded_pes = download_binaries(&cfg, output_directory).await?;
     println!("PEs downloaded!");
+    // Download PDBs
+    let downloaded_binaries = download_pdbs(downloaded_pes, output_directory).await;
+    println!("PDBs downloaded!");
 
     // Extract information from PEs
-    generate_databases(&cfg, &downloaded_pes, &opt.output_directory).await?;
-    println!("Databases have generated at {:?}", opt.output_directory);
+    generate_databases(&cfg, &downloaded_binaries, &opt.output_directory).await?;
+    println!(
+        "Databases have been generated at {:?}",
+        opt.output_directory
+    );
 
     Ok(())
 }
@@ -101,7 +109,7 @@ async fn download_pe_versions(
 
 async fn generate_databases(
     cfg: &WinDiffConfiguration,
-    downloaded_pes: &[DownloadedPEVersion],
+    downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
     output_directory: &Path,
 ) -> Result<()> {
     const CONCURRENT_DB_GENERATIONS: usize = 16;
@@ -109,10 +117,15 @@ async fn generate_databases(
     // Create directory tree if needed
     tokio::fs::create_dir_all(output_directory).await?;
     // Generate databases concurrently
-    futures::stream::iter(downloaded_pes.iter().map(|downloaded_pe| async {
-        generate_database_for_pe_version(cfg, downloaded_pe, output_directory).await?;
-        Ok(())
-    }))
+    futures::stream::iter(
+        downloaded_binaries
+            .iter()
+            .map(|(downloaded_pe, pdb_path)| async {
+                generate_database_for_pe_version(cfg, downloaded_pe, pdb_path, output_directory)
+                    .await?;
+                Ok(())
+            }),
+    )
     .buffer_unordered(CONCURRENT_DB_GENERATIONS)
     // Ignore errors and simply skip the corresponding files
     .filter_map(|result: Result<()>| async { result.ok() })
@@ -128,6 +141,7 @@ async fn generate_databases(
 async fn generate_database_for_pe_version(
     cfg: &WinDiffConfiguration,
     pe_version: &DownloadedPEVersion,
+    pdb_path: &Option<PathBuf>,
     output_directory: &Path,
 ) -> Result<()> {
     // Open file
@@ -139,6 +153,16 @@ async fn generate_database_for_pe_version(
 
     // Parse PE and generate database
     if let Object::PE(pe) = Object::parse(&file_data)? {
+        let pdb = if let Some(pdb_path) = pdb_path {
+            if let Ok(pdb_file) = std::fs::File::open(pdb_path) {
+                Some(::pdb::PDB::open(pdb_file)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        let binary_desc = cfg.binaries.get(&pe_version.original_name).unwrap();
         let output_file = output_directory.join(format!(
             "{}_{}_{}_{}.json",
             pe_version.original_name,
@@ -146,24 +170,26 @@ async fn generate_database_for_pe_version(
             pe_version.os_update,
             pe_version.architecture.to_str()
         ));
-        let binary_desc = cfg.binaries.get(&pe_version.original_name).unwrap();
+
         generate_database_for_pe(
             pe_version,
             pe,
+            pdb,
             &binary_desc.extracted_information,
             output_file,
         )
         .await?;
-    } else {
-        println!("unsupported format");
-    }
 
-    Ok(())
+        Ok(())
+    } else {
+        Err(WinDiffError::UnsupportedExecutableFormat)
+    }
 }
 
 async fn generate_database_for_pe(
     pe_version: &DownloadedPEVersion,
     pe: pe::PE<'_>,
+    pdb: Option<::pdb::PDB<'_, std::fs::File>>,
     extracted_information: &BinaryExtractedInformation,
     output_path: impl AsRef<Path>,
 ) -> Result<()> {
@@ -180,6 +206,12 @@ async fn generate_database_for_pe(
             .iter()
             .filter_map(|exp| Some(exp.name?.to_string()))
             .collect();
+    }
+    // Extract debug symbols
+    if extracted_information.contains(BinaryExtractedInformationFlags::DebugSymbols) {
+        if let Some(mut pdb) = pdb {
+            database.symbols = pdb::extract_symbols_from_pdb(&mut pdb)?;
+        }
     }
 
     // Serialize database
@@ -217,4 +249,25 @@ async fn generate_index(cfg: &WinDiffConfiguration, output_directory: &Path) -> 
     tokio::io::copy(&mut json_data.as_slice(), &mut output_file).await?;
 
     Ok(())
+}
+
+async fn download_pdbs(
+    downloaded_pes: Vec<DownloadedPEVersion>,
+    output_directory: &Path,
+) -> Vec<(DownloadedPEVersion, Option<PathBuf>)> {
+    const CONCURRENT_PDB_DOWNLOADS: usize = 16;
+
+    // Download all requested versions concurrently
+    futures::stream::iter(downloaded_pes.into_iter().map(|pe_version| async move {
+        let pdb_path_opt = pdb::download_pdb_for_pe(&pe_version.path, output_directory)
+            .await
+            .ok();
+
+        Ok((pe_version, pdb_path_opt))
+    }))
+    .buffer_unordered(CONCURRENT_PDB_DOWNLOADS)
+    // Ignore errors and simply skip the corresponding files
+    .filter_map(|result: Result<(DownloadedPEVersion, Option<PathBuf>)>| async { result.ok() })
+    .collect()
+    .await
 }

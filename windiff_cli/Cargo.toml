@@ -16,3 +16,5 @@ async-compression = { version = "0.3", features = ["gzip", "tokio"] }
 tempdir = "0.3"
 goblin = "0.6"
 enumflags2 = { version = "0.7", features = ["serde"] }
+hex = "0.4"
+pdb = { git = "https://github.com/ergrelet/pdb", branch = "0.8.0-resym" }
