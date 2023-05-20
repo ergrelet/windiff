@@ -3,11 +3,18 @@
 import { useState } from "react";
 import useSWR from "swr";
 import Editor from "@monaco-editor/react";
+import pako from "pako";
 
 import DarkTabs from "./tabs";
 import DarkListbox from "./listbox";
 
-const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
+const compressedJsonFetcher = async (url: string) => {
+  const response = await fetch(url);
+  let binaryData = await response.arrayBuffer();
+  let uintArray = new Uint8Array(binaryData);
+  const jsonString = pako.inflate(uintArray, { to: "string" });
+  return JSON.parse(jsonString);
+};
 
 enum Tab {
   Exports = 0,
@@ -25,8 +32,8 @@ export default function FileExplorer() {
 
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR(
-    "/index.json",
-    jsonFetcher
+    "/index.json.gz",
+    compressedJsonFetcher
   );
 
   let fileName;
@@ -39,12 +46,12 @@ export default function FileExplorer() {
       binary = indexData.binaries[0];
     }
 
-    fileName = `${binary}_${OSVersion}.json`;
+    fileName = `${binary}_${OSVersion}.json.gz`;
   }
 
   let { data: fileData, error: fileError } = useSWR(
     `/${fileName}`,
-    jsonFetcher
+    compressedJsonFetcher
   );
   if (indexError) {
     return <div>Failed to load</div>;

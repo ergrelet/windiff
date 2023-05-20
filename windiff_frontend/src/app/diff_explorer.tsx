@@ -3,11 +3,18 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { DiffEditor } from "@monaco-editor/react";
+import pako from "pako";
 
 import DarkTabs from "./tabs";
 import DarkListbox from "./listbox";
 
-const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
+const compressedJsonFetcher = async (url: string) => {
+  const response = await fetch(url);
+  let binaryData = await response.arrayBuffer();
+  let uintArray = new Uint8Array(binaryData);
+  const jsonString = pako.inflate(uintArray, { to: "string" });
+  return JSON.parse(jsonString);
+};
 
 enum Tab {
   Exports = 0,
@@ -26,8 +33,8 @@ export default function DiffExplorer() {
 
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR(
-    "/index.json",
-    jsonFetcher
+    "/index.json.gz",
+    compressedJsonFetcher
   );
 
   let leftFileName;
@@ -43,17 +50,17 @@ export default function DiffExplorer() {
       binary = indexData.binaries[0];
     }
 
-    leftFileName = `${binary}_${leftOSVersion}.json`;
-    rightFileName = `${binary}_${rightOSVersion}.json`;
+    leftFileName = `${binary}_${leftOSVersion}.json.gz`;
+    rightFileName = `${binary}_${rightOSVersion}.json.gz`;
   }
 
   let { data: leftFileData, error: leftFileError } = useSWR(
     `/${leftFileName}`,
-    jsonFetcher
+    compressedJsonFetcher
   );
   let { data: rightFileData, error: rightFileError } = useSWR(
     `/${rightFileName}`,
-    jsonFetcher
+    compressedJsonFetcher
   );
 
   if (indexError) {

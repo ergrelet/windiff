@@ -7,13 +7,17 @@ mod winbindex;
 
 use std::path::{Path, PathBuf};
 
+use async_compression::tokio::write::GzipEncoder;
 use configuration::{BinaryExtractedInformation, BinaryExtractedInformationFlags, OSDescription};
 use database::{BinaryDatabase, DatabaseIndex, OSVersion};
 use error::WinDiffError;
 use futures::stream::StreamExt;
 use goblin::{pe, Object};
 use structopt::StructOpt;
-use tokio::{fs::File, io::AsyncReadExt};
+use tokio::{
+    fs::File,
+    io::{AsyncReadExt, AsyncWriteExt},
+};
 use winbindex::DownloadedPEVersion;
 
 use crate::{cli::WinDiffOpt, configuration::WinDiffConfiguration, error::Result};
@@ -164,7 +168,7 @@ async fn generate_database_for_pe_version(
         };
         let binary_desc = cfg.binaries.get(&pe_version.original_name).unwrap();
         let output_file = output_directory.join(format!(
-            "{}_{}_{}_{}.json",
+            "{}_{}_{}_{}.json.gz",
             pe_version.original_name,
             pe_version.os_version,
             pe_version.os_update,
@@ -222,9 +226,11 @@ async fn generate_database_for_pe(
     // Serialize database
     let json_data = serde_json::to_vec(&database)?;
 
-    // Create file and copy JSON data
-    let mut output_file = File::create(output_path.as_ref()).await?;
-    tokio::io::copy(&mut json_data.as_slice(), &mut output_file).await?;
+    // Create file and copy compressed JSON data
+    let output_file = File::create(output_path.as_ref()).await?;
+    let mut gz = GzipEncoder::new(output_file);
+    gz.write_all(json_data.as_slice()).await?;
+    gz.shutdown().await?;
 
     Ok(())
 }
@@ -248,10 +254,12 @@ async fn generate_index(cfg: &WinDiffConfiguration, output_directory: &Path) -> 
     // Serialize index
     let json_data = serde_json::to_vec(&index)?;
 
-    // Create file and copy JSON data
-    let output_path = output_directory.join("index.json");
-    let mut output_file = File::create(output_path).await?;
-    tokio::io::copy(&mut json_data.as_slice(), &mut output_file).await?;
+    // Create file and copy compressed JSON data
+    let output_path = output_directory.join("index.json.gz");
+    let output_file = File::create(output_path).await?;
+    let mut gz = GzipEncoder::new(output_file);
+    gz.write_all(json_data.as_slice()).await?;
+    gz.shutdown().await?;
 
     Ok(())
 }
