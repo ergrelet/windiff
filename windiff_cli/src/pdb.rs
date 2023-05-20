@@ -149,3 +149,16 @@ fn dump_symbol(symbol: &pdb::Symbol<'_>) -> Result<String> {
         }
     }
 }
+
+pub fn extract_modules_from_pdb(pdb: &mut pdb::PDB<'_, std::fs::File>) -> Result<BTreeSet<String>> {
+    let mut result = BTreeSet::new();
+
+    // Modules' private symbols
+    let dbi = pdb.debug_information()?;
+    let mut modules = dbi.modules()?;
+    while let Some(module) = modules.next()? {
+        result.insert(module.module_name().to_string());
+    }
+
+    Ok(result)
+}

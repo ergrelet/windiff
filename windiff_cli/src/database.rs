@@ -22,6 +22,8 @@ pub struct BinaryDatabase {
     pub exports: BTreeSet<String>,
     /// Debug symbols
     pub symbols: BTreeSet<String>,
+    /// Compiled modules
+    pub modules: BTreeSet<String>,
 }
 
 #[derive(Serialize, Debug, Default)]

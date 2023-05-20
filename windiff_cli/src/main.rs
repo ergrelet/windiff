@@ -207,10 +207,15 @@ async fn generate_database_for_pe(
             .filter_map(|exp| Some(exp.name?.to_string()))
             .collect();
     }
-    // Extract debug symbols
-    if extracted_information.contains(BinaryExtractedInformationFlags::DebugSymbols) {
-        if let Some(mut pdb) = pdb {
+    // Extract information from the PDB file if available
+    if let Some(mut pdb) = pdb {
+        // Extract debug symbols
+        if extracted_information.contains(BinaryExtractedInformationFlags::DebugSymbols) {
             database.symbols = pdb::extract_symbols_from_pdb(&mut pdb)?;
+        }
+        // Extract compiled modules
+        if extracted_information.contains(BinaryExtractedInformationFlags::Modules) {
+            database.modules = pdb::extract_modules_from_pdb(&mut pdb)?;
         }
     }
 

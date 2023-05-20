@@ -12,11 +12,12 @@ const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
 enum Tab {
   Exports = 0,
   Symbols = 1,
-  Types = 2,
+  Modules = 2,
+  Types = 3,
 }
 
 export default function DiffExplorer() {
-  const tabs = ["Exported Symbols", "Debug Symbols", "Debug Types"];
+  const tabs = ["Exported Symbols", "Debug Symbols", "Modules", "Debug Types"];
 
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
   let [leftOSVersion, setLeftOSVersion] = useState("");
@@ -77,6 +78,9 @@ export default function DiffExplorer() {
       case Tab.Symbols:
         leftData = leftFileData.symbols.join("\n");
         break;
+      case Tab.Modules:
+        leftData = leftFileData.modules.join("\n");
+        break;
       case Tab.Types:
         leftData = leftFileData.types.join("\n");
         break;
@@ -93,6 +97,9 @@ export default function DiffExplorer() {
         break;
       case Tab.Symbols:
         rightData = rightFileData.symbols.join("\n");
+        break;
+      case Tab.Modules:
+        rightData = rightFileData.modules.join("\n");
         break;
       case Tab.Types:
         rightData = rightFileData.types.join("\n");

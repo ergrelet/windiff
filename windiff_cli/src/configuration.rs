@@ -45,6 +45,7 @@ pub struct BinaryDescription {
 pub enum BinaryExtractedInformationFlags {
     Exports,
     DebugSymbols,
+    Modules,
 }
 
 pub type BinaryExtractedInformation = BitFlags<BinaryExtractedInformationFlags>;

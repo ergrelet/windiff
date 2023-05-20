@@ -12,11 +12,12 @@ const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
 enum Tab {
   Exports = 0,
   Symbols = 1,
-  Types = 2,
+  Modules = 2,
+  Types = 3,
 }
 
 export default function FileExplorer() {
-  const tabs = ["Exported Symbols", "Debug Symbols", "Debug Types"];
+  const tabs = ["Exported Symbols", "Debug Symbols", "Modules", "Debug Types"];
 
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
   let [OSVersion, setOSVersion] = useState("");
@@ -65,6 +66,9 @@ export default function FileExplorer() {
         break;
       case Tab.Symbols:
         data = fileData.symbols.join("\n");
+        break;
+      case Tab.Modules:
+        data = fileData.modules.join("\n");
         break;
       case Tab.Types:
         data = fileData.types.join("\n");
