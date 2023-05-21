@@ -21,14 +21,15 @@ generate the PDB's MSDN URLs from the debug information present in those PEs.
 
 ## Configuration
 
-It's easier to configure a database's creation once in a configuration file,
-rather than passing countless command-line arguments.
-This also allows to rebuild a database given the original configuration file
-that produced it.
+### Ideas
 
-### Idea
+- It's easier to configure a database's creation once in a configuration file,
+  rather than passing countless command-line arguments.
+- This also allows to easily rebuild a database given the original configuration
+  file that produced it.
+- We want to be able to fetch one or multiple binaries, in one or multiple versions.
 
-We want to be able to fetch one or multiple binaries, in one or multiple versions.
+Example:
 
 ```json
 {

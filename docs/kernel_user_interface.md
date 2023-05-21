@@ -1,5 +1,12 @@
 # Kernel-User Interface
 
+## Idea
+
+Being able to extract "syscall interfaces" from one or both sides (user and
+kernel) would be nice.
+
+Example:
+
 ```json
 {
   "syscalls": {
@@ -19,3 +26,5 @@
   }
 }
 ```
+
+Note: this idea hasn't been implemented yet
