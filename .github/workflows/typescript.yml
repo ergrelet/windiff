@@ -1,0 +1,27 @@
+name: TypeScript
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install project
+        run: npm ci
+        working-directory: ./windiff_frontend
+
+      - name: Run lint
+        run: npm run lint
+        working-directory: ./windiff_frontend
+
+      - name: Run build
+        run: npm run build
+        working-directory: ./windiff_frontend

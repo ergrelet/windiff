@@ -11,6 +11,7 @@ cargo run --release "$PROJECT_ROOT/ci/db_configuration.json" "$PROJECT_ROOT/wind
 
 # Build the frontend
 cd "$PROJECT_ROOT/windiff_frontend"
+npm ci
 npm run build
 
 cd "$PROJECT_ROOT"
