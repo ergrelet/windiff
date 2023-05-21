@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::Serialize;
 
@@ -24,6 +24,8 @@ pub struct BinaryDatabase {
     pub symbols: BTreeSet<String>,
     /// Compiled modules
     pub modules: BTreeSet<String>,
+    /// Debug types (type identifier -> reconstructed type)
+    pub types: BTreeMap<String, String>,
 }
 
 #[derive(Serialize, Debug, Default)]

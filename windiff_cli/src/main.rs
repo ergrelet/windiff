@@ -3,6 +3,7 @@ mod configuration;
 mod database;
 mod error;
 mod pdb;
+mod resym_frontend;
 mod winbindex;
 
 use std::path::{Path, PathBuf};
@@ -20,7 +21,7 @@ use tokio::{
 };
 use winbindex::DownloadedPEVersion;
 
-use crate::{cli::WinDiffOpt, configuration::WinDiffConfiguration, error::Result};
+use crate::{cli::WinDiffOpt, configuration::WinDiffConfiguration, error::Result, pdb::Pdb};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -158,11 +159,7 @@ async fn generate_database_for_pe_version(
     // Parse PE and generate database
     if let Object::PE(pe) = Object::parse(&file_data)? {
         let pdb = if let Some(pdb_path) = pdb_path {
-            if let Ok(pdb_file) = std::fs::File::open(pdb_path) {
-                Some(::pdb::PDB::open(pdb_file)?)
-            } else {
-                None
-            }
+            Some(Pdb::new(pdb_path.clone())?)
         } else {
             None
         };
@@ -193,7 +190,7 @@ async fn generate_database_for_pe_version(
 async fn generate_database_for_pe(
     pe_version: &DownloadedPEVersion,
     pe: pe::PE<'_>,
-    pdb: Option<::pdb::PDB<'_, std::fs::File>>,
+    pdb: Option<Pdb<'_>>,
     extracted_information: &BinaryExtractedInformation,
     output_path: impl AsRef<Path>,
 ) -> Result<()> {
@@ -215,11 +212,15 @@ async fn generate_database_for_pe(
     if let Some(mut pdb) = pdb {
         // Extract debug symbols
         if extracted_information.contains(BinaryExtractedInformationFlags::DebugSymbols) {
-            database.symbols = pdb::extract_symbols_from_pdb(&mut pdb)?;
+            database.symbols = pdb.extract_symbols()?;
         }
         // Extract compiled modules
         if extracted_information.contains(BinaryExtractedInformationFlags::Modules) {
-            database.modules = pdb::extract_modules_from_pdb(&mut pdb)?;
+            database.modules = pdb.extract_modules()?;
+        }
+        // Extract debug types
+        if extracted_information.contains(BinaryExtractedInformationFlags::Types) {
+            database.types = pdb.extract_types()?;
         }
     }
 

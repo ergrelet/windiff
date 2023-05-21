@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -9,9 +9,73 @@ use goblin::{pe::debug::DebugData, Object};
 use pdb::FallibleIterator;
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::error::{Result, WinDiffError};
+use crate::{
+    error::{Result, WinDiffError},
+    resym_frontend::WinDiffApp,
+};
 
 const MSDL_FILE_DOWNLOAD_BASE_URL: &str = "https://msdl.microsoft.com/download/symbols/";
+
+pub struct Pdb<'p> {
+    file_path: PathBuf,
+    pdb: pdb::PDB<'p, std::fs::File>,
+}
+
+impl<'p> Pdb<'p> {
+    pub fn new(file_path: PathBuf) -> Result<Self> {
+        let pdb_file = std::fs::File::open(&file_path)?;
+        let pdb = pdb::PDB::open(pdb_file)?;
+
+        Ok(Self { file_path, pdb })
+    }
+
+    pub fn extract_symbols(&mut self) -> Result<BTreeSet<String>> {
+        let mut symbols = BTreeSet::new();
+
+        // Global symbols
+        let symbol_table = self.pdb.global_symbols()?;
+        symbols.append(&mut walk_symbols(symbol_table.iter())?);
+
+        // Modules' private symbols
+        let dbi = self.pdb.debug_information()?;
+        let mut modules = dbi.modules()?;
+        while let Some(module) = modules.next()? {
+            let info = match self.pdb.module_info(&module)? {
+                Some(info) => info,
+                None => {
+                    continue;
+                }
+            };
+
+            symbols.append(&mut walk_symbols(info.symbols()?)?);
+        }
+
+        Ok(symbols)
+    }
+
+    pub fn extract_modules(&mut self) -> Result<BTreeSet<String>> {
+        let mut result = BTreeSet::new();
+
+        // Modules' private symbols
+        let dbi = self.pdb.debug_information()?;
+        let mut modules = dbi.modules()?;
+        while let Some(module) = modules.next()? {
+            result.insert(module.module_name().to_string());
+        }
+
+        Ok(result)
+    }
+
+    pub fn extract_types(&self) -> Result<BTreeMap<String, String>> {
+        let windiff_app = WinDiffApp::new()?;
+        let result = windiff_app
+            .list_types(&self.file_path)?
+            .into_iter()
+            .collect();
+
+        Ok(result)
+    }
+}
 
 pub async fn download_pdb_for_pe(pe_path: &Path, output_directory: &Path) -> Result<PathBuf> {
     // Open file
@@ -96,30 +160,6 @@ async fn download_file(url: reqwest::Url, output_file_path: &Path) -> Result<()>
     Ok(())
 }
 
-pub fn extract_symbols_from_pdb(pdb: &mut pdb::PDB<'_, std::fs::File>) -> Result<BTreeSet<String>> {
-    let mut symbols = BTreeSet::new();
-
-    // Global symbols
-    let symbol_table = pdb.global_symbols()?;
-    symbols.append(&mut walk_symbols(symbol_table.iter())?);
-
-    // Modules' private symbols
-    let dbi = pdb.debug_information()?;
-    let mut modules = dbi.modules()?;
-    while let Some(module) = modules.next()? {
-        let info = match pdb.module_info(&module)? {
-            Some(info) => info,
-            None => {
-                continue;
-            }
-        };
-
-        symbols.append(&mut walk_symbols(info.symbols()?)?);
-    }
-
-    Ok(symbols)
-}
-
 fn walk_symbols(mut symbols: pdb::SymbolIter<'_>) -> Result<BTreeSet<String>> {
     let mut result = BTreeSet::new();
     while let Some(symbol) = symbols.next()? {
@@ -148,17 +188,4 @@ fn dump_symbol(symbol: &pdb::Symbol<'_>) -> Result<String> {
             Err(WinDiffError::UnsupportedExecutableFormat)
         }
     }
-}
-
-pub fn extract_modules_from_pdb(pdb: &mut pdb::PDB<'_, std::fs::File>) -> Result<BTreeSet<String>> {
-    let mut result = BTreeSet::new();
-
-    // Modules' private symbols
-    let dbi = pdb.debug_information()?;
-    let mut modules = dbi.modules()?;
-    while let Some(module) = modules.next()? {
-        result.insert(module.module_name().to_string());
-    }
-
-    Ok(result)
 }

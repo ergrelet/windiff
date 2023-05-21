@@ -7,6 +7,7 @@ import pako from "pako";
 
 import DarkTabs from "./tabs";
 import DarkListbox from "./listbox";
+import DarkCombobox from "./combobox";
 
 const compressedJsonFetcher = async (url: string) => {
   const response = await fetch(url);
@@ -20,16 +21,24 @@ enum Tab {
   Exports = 0,
   Symbols = 1,
   Modules = 2,
-  Types = 3,
+  TypeList = 3,
+  Types = 4,
 }
 
 export default function DiffExplorer() {
-  const tabs = ["Exported Symbols", "Debug Symbols", "Modules", "Debug Types"];
+  const tabs = [
+    "Exported Symbols",
+    "Debug Symbols",
+    "Modules",
+    "Types",
+    "Reconstructed Types",
+  ];
 
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
   let [leftOSVersion, setLeftOSVersion] = useState("");
   let [rightOSVersion, setRightOSVersion] = useState("");
   let [binary, setBinary] = useState("");
+  const [selectedType, setSelectedType] = useState("");
 
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR(
@@ -88,8 +97,11 @@ export default function DiffExplorer() {
       case Tab.Modules:
         leftData = leftFileData.modules.join("\n");
         break;
+      case Tab.TypeList:
+        leftData = Object.keys(leftFileData.types).join("\n");
+        break;
       case Tab.Types:
-        leftData = leftFileData.types.join("\n");
+        leftData = leftFileData.types[selectedType];
         break;
     }
   }
@@ -108,9 +120,30 @@ export default function DiffExplorer() {
       case Tab.Modules:
         rightData = rightFileData.modules.join("\n");
         break;
-      case Tab.Types:
-        rightData = rightFileData.types.join("\n");
+      case Tab.TypeList:
+        rightData = Object.keys(rightFileData.types).join("\n");
         break;
+      case Tab.Types:
+        rightData = rightFileData.types[selectedType];
+        break;
+    }
+  }
+
+  let editorLanguage = "plaintext";
+  let typesCombobox;
+  if (leftFileData && rightFileData) {
+    const typeList = new Set(
+      Object.keys(leftFileData.types).concat(Object.keys(rightFileData.types))
+    );
+    if (currentTabId == Tab.Types) {
+      editorLanguage = "cpp";
+      typesCombobox = (
+        <DarkCombobox
+          selectedOption={selectedType}
+          options={[...typeList]}
+          onChange={(value) => setSelectedType(value)}
+        />
+      );
     }
   }
 
@@ -118,7 +151,7 @@ export default function DiffExplorer() {
     <div className="flex flex-row justify-center items-center">
       <div className="max-w-6xl w-full space-y-2 py-2 pl-10 pr-10">
         <DarkTabs tabs={tabs} onChange={(value) => setCurrentTabId(value)} />
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <DarkListbox
             value={leftOSVersion}
             options={indexData.oses.map((osVersion: any) =>
@@ -140,11 +173,13 @@ export default function DiffExplorer() {
             options={indexData.binaries}
             onChange={(value) => setBinary(value)}
           />
+
+          {typesCombobox}
         </div>
         <DiffView
           oldRevision={leftData}
           newRevision={rightData}
-          language="text"
+          language={editorLanguage}
         />
       </div>
     </div>

@@ -7,6 +7,7 @@ import pako from "pako";
 
 import DarkTabs from "./tabs";
 import DarkListbox from "./listbox";
+import DarkCombobox from "./combobox";
 
 const compressedJsonFetcher = async (url: string) => {
   const response = await fetch(url);
@@ -20,15 +21,23 @@ enum Tab {
   Exports = 0,
   Symbols = 1,
   Modules = 2,
-  Types = 3,
+  TypeList = 3,
+  Types = 4,
 }
 
 export default function FileExplorer() {
-  const tabs = ["Exported Symbols", "Debug Symbols", "Modules", "Debug Types"];
+  const tabs = [
+    "Exported Symbols",
+    "Debug Symbols",
+    "Modules",
+    "Types",
+    "Reconstructed Types",
+  ];
 
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
   let [OSVersion, setOSVersion] = useState("");
   let [binary, setBinary] = useState("");
+  let [selectedType, setSelectedType] = useState("");
 
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR(
@@ -63,6 +72,8 @@ export default function FileExplorer() {
 
   // Prepare the appropriate data
   let data;
+  let editorLanguage = "plaintext";
+  let typesCombobox;
   if (!fileData) {
     data = fileError ? "" : "Loading...";
   } else {
@@ -77,8 +88,19 @@ export default function FileExplorer() {
       case Tab.Modules:
         data = fileData.modules.join("\n");
         break;
+      case Tab.TypeList:
+        data = Object.keys(fileData.types).join("\n");
+        break;
       case Tab.Types:
-        data = fileData.types.join("\n");
+        data = fileData.types[selectedType];
+        editorLanguage = "cpp";
+        typesCombobox = (
+          <DarkCombobox
+            selectedOption={selectedType}
+            options={Object.keys(fileData.types)}
+            onChange={(value) => setSelectedType(value)}
+          />
+        );
         break;
     }
   }
@@ -87,7 +109,7 @@ export default function FileExplorer() {
     <div className="flex flex-row justify-center items-center">
       <div className="max-w-4xl w-full space-y-2 py-2 pl-10 pr-10">
         <DarkTabs tabs={tabs} onChange={(value) => setCurrentTabId(value)} />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <DarkListbox
             value={OSVersion}
             options={indexData.oses.map((osVersion: any) =>
@@ -101,8 +123,15 @@ export default function FileExplorer() {
             options={indexData.binaries}
             onChange={(value) => setBinary(value)}
           />
+
+          {typesCombobox}
         </div>
-        <Editor height="70vh" theme="vs-dark" value={data} language="text" />
+        <Editor
+          height="70vh"
+          theme="vs-dark"
+          value={data}
+          language={editorLanguage}
+        />
       </div>
     </div>
   );

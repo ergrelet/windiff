@@ -46,6 +46,7 @@ pub enum BinaryExtractedInformationFlags {
     Exports,
     DebugSymbols,
     Modules,
+    Types,
 }
 
 pub type BinaryExtractedInformation = BitFlags<BinaryExtractedInformationFlags>;
