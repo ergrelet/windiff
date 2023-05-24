@@ -23,6 +23,11 @@ class WinDiffConfiguration(TypedDict):
 def main(configuration_path: str,
          kb_date_limit: Optional[str] = None,
          dry_run: bool = False) -> None:
+    """
+    Main routine of the script.
+    This script is used to update WinDiff configuration files with new updates
+    fetched from Winbindex.
+    """
     if kb_date_limit is not None:
         # Fetch base versions and KB updates up to a certain date
         available_os_versions = get_winbindex_available_os_versions(
@@ -48,6 +53,9 @@ def main(configuration_path: str,
 def get_winbindex_available_os_versions(
         base_only: bool = True,
         kb_date_limit: Optional[datetime] = None) -> Set[Tuple[str, str, str]]:
+    """
+    Fetch updates from Winbindex.
+    """
     response = requests.get(WINBINDEX_UPDATES_AMD64_URL)
     updates = response.json()
 
@@ -60,6 +68,10 @@ def extract_winbindex_os_versions(
         architecture: str,
         base_only: bool = True,
         kb_date_limit: Optional[datetime] = None) -> Set[Tuple[str, str, str]]:
+    """
+    Parse Winbindex's 'updates.json' files and return the set of updates for
+    all Windows versions.
+    """
     result: Set[Tuple[str, str, str]] = set()
     for os_version_name, os_updates in os_versions.items():
         # "BASE" versions aren't included
@@ -81,6 +93,9 @@ def extract_winbindex_os_versions(
 
 def get_configured_os_versions(
         json_config: WinDiffConfiguration) -> Set[Tuple[str, str, str]]:
+    """
+    Return the set of updates tracked by WinDiff, given its configuration file.
+    """
     config_oses = json_config["oses"]
     return set(
         map(lambda os: (os["version"], os["update"], os["architecture"]),
@@ -89,6 +104,9 @@ def get_configured_os_versions(
 
 def update_windiff_config(new_os_updates: Set[Tuple[str, str, str]],
                           json_config: WinDiffConfiguration) -> None:
+    """
+    Update WinDiff configuration file by adding new updates to it.
+    """
     config_oses = json_config["oses"]
     config_oses.extend(
         map(

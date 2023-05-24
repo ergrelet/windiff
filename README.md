@@ -28,6 +28,11 @@ allows browsing information extracted from official Microsoft PEs and PDBs for
 certain versions of Microsoft Windows and also allows comparing this information
 between versions. The frontend's code is in the `windiff_frontend` directory.
 
+A scheduled GitHub action fetches new updates from Winbindex every day and
+updates the configuration file used to generate the live version of WinDiff.
+Currently, because of (free plans) storage and compute limitations, only KB
+updates which are less than one year old are kept.
+
 ## How to Build
 
 ### Prerequisites
