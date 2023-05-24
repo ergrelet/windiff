@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeSet,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -9,15 +9,12 @@ use goblin::{pe::debug::DebugData, Object};
 use pdb::FallibleIterator;
 use tokio::{fs::File, io::AsyncReadExt};
 
-use crate::{
-    error::{Result, WinDiffError},
-    resym_frontend::WinDiffApp,
-};
+use crate::error::{Result, WinDiffError};
 
 const MSDL_FILE_DOWNLOAD_BASE_URL: &str = "https://msdl.microsoft.com/download/symbols/";
 
 pub struct Pdb<'p> {
-    file_path: PathBuf,
+    pub file_path: PathBuf,
     pdb: pdb::PDB<'p, std::fs::File>,
 }
 
@@ -30,6 +27,8 @@ impl<'p> Pdb<'p> {
     }
 
     pub fn extract_symbols(&mut self) -> Result<BTreeSet<String>> {
+        log::trace!("Extracting symbols from {:?}", self.file_path);
+
         let mut symbols = BTreeSet::new();
 
         // Global symbols
@@ -54,6 +53,8 @@ impl<'p> Pdb<'p> {
     }
 
     pub fn extract_modules(&mut self) -> Result<BTreeSet<String>> {
+        log::trace!("Extracting modules from {:?}", self.file_path);
+
         let mut result = BTreeSet::new();
 
         // Modules' private symbols
@@ -62,16 +63,6 @@ impl<'p> Pdb<'p> {
         while let Some(module) = modules.next()? {
             result.insert(module.module_name().to_string());
         }
-
-        Ok(result)
-    }
-
-    pub fn extract_types(&self) -> Result<BTreeMap<String, String>> {
-        let windiff_app = WinDiffApp::new()?;
-        let result = windiff_app
-            .list_types(&self.file_path)?
-            .into_iter()
-            .collect();
 
         Ok(result)
     }
@@ -90,7 +81,7 @@ pub async fn download_pdb_for_pe(pe_path: &Path, output_directory: &Path) -> Res
         // Generate PDB url
         let pe_dbg_data = pe.debug_data.unwrap();
         let pdb_download_url = generate_pdb_download_url(&pe_dbg_data)?;
-        println!("Found download URL for PDB: {}", pdb_download_url.as_str());
+        log::debug!("Found download URL for PDB: {}", pdb_download_url.as_str());
 
         // Download PDB
         let output_pdb_path = format!("{}.pdb", pe_path.file_stem().unwrap().to_str().unwrap());

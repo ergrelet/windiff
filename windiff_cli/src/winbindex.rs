@@ -42,9 +42,17 @@ pub async fn download_pe_version(
     os_architecture: &OSArchitecture,
     output_directory: &Path,
 ) -> Result<DownloadedPEVersion> {
+    log::trace!(
+        "Downloading PE '{}_{}_{}_{}'",
+        pe_name,
+        os_version,
+        os_update,
+        os_architecture.to_str()
+    );
+
     let pe_info = get_pe_info_from_index(pe_index, os_version, os_update, os_architecture)?;
     let pe_download_url = generate_file_download_url(pe_name, &pe_info)?;
-    println!(
+    log::debug!(
         "Found download URL for version '{}-{}': {}",
         os_version,
         os_update,

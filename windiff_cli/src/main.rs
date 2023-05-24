@@ -21,28 +21,36 @@ use tokio::{
 };
 use winbindex::DownloadedPEVersion;
 
-use crate::{cli::WinDiffOpt, configuration::WinDiffConfiguration, error::Result, pdb::Pdb};
+use crate::{
+    cli::WinDiffOpt, configuration::WinDiffConfiguration, error::Result, pdb::Pdb,
+    resym_frontend::WinDiffApp,
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    env_logger::init();
+
     // Parse command-line options
     let opt = WinDiffOpt::from_args();
-    println!("Using configuration file: {:?}", opt.configuration);
+    log::info!("Using configuration file: {:?}", opt.configuration);
 
     // Parse configuration file
     let cfg = WinDiffConfiguration::from_file(&opt.configuration).await?;
     // Download requested PEs
     let tmp_directory = tempdir::TempDir::new("windiff")?;
     let output_directory = tmp_directory.path();
+    log::info!("Downloading PEs...");
     let downloaded_pes = download_binaries(&cfg, output_directory).await?;
-    println!("PEs downloaded!");
+    log::trace!("PEs downloaded!");
     // Download PDBs
+    log::info!("Downloading PDBs...");
     let downloaded_binaries = download_pdbs(downloaded_pes, output_directory).await;
-    println!("PDBs downloaded!");
+    log::trace!("PDBs downloaded!");
 
     // Extract information from PEs
+    log::info!("Generating databases...");
     generate_databases(&cfg, &downloaded_binaries, &opt.output_directory).await?;
-    println!(
+    log::info!(
         "Databases have been generated at {:?}",
         opt.output_directory
     );
@@ -60,7 +68,7 @@ async fn download_binaries(
     // Fetch all binaries concurrently and fold results into a single `Vec`
     let result: Vec<DownloadedPEVersion> =
         futures::stream::iter(cfg.binaries.keys().map(|binary_name| async move {
-            println!("Fetching '{}' binaries ...", binary_name);
+            log::trace!("Fetching '{}' binaries ...", binary_name);
 
             // Retrieve the index file for that PE file
             let pe_index = winbindex::get_remote_index_for_pe(binary_name).await?;
@@ -119,6 +127,8 @@ async fn generate_databases(
 ) -> Result<()> {
     const CONCURRENT_DB_GENERATIONS: usize = 16;
 
+    let windiff_app = WinDiffApp::new()?;
+
     // Create directory tree if needed
     tokio::fs::create_dir_all(output_directory).await?;
     // Generate databases concurrently
@@ -126,8 +136,15 @@ async fn generate_databases(
         downloaded_binaries
             .iter()
             .map(|(downloaded_pe, pdb_path)| async {
-                generate_database_for_pe_version(cfg, downloaded_pe, pdb_path, output_directory)
-                    .await?;
+                let windiff_app = &windiff_app;
+                generate_database_for_pe_version(
+                    cfg,
+                    windiff_app,
+                    downloaded_pe,
+                    pdb_path,
+                    output_directory,
+                )
+                .await?;
                 Ok(())
             }),
     )
@@ -145,10 +162,19 @@ async fn generate_databases(
 
 async fn generate_database_for_pe_version(
     cfg: &WinDiffConfiguration,
+    windiff_app: &WinDiffApp,
     pe_version: &DownloadedPEVersion,
     pdb_path: &Option<PathBuf>,
     output_directory: &Path,
 ) -> Result<()> {
+    log::trace!(
+        "Generating database for PE '{}_{}_{}_{}'",
+        pe_version.original_name,
+        pe_version.os_version,
+        pe_version.os_update,
+        pe_version.architecture.to_str()
+    );
+
     // Open file
     let mut file = File::open(&pe_version.path).await?;
 
@@ -173,6 +199,7 @@ async fn generate_database_for_pe_version(
         ));
 
         generate_database_for_pe(
+            windiff_app,
             pe_version,
             pe,
             pdb,
@@ -188,6 +215,7 @@ async fn generate_database_for_pe_version(
 }
 
 async fn generate_database_for_pe(
+    windiff_app: &WinDiffApp,
     pe_version: &DownloadedPEVersion,
     pe: pe::PE<'_>,
     pdb: Option<Pdb<'_>>,
@@ -220,7 +248,11 @@ async fn generate_database_for_pe(
         }
         // Extract debug types
         if extracted_information.contains(BinaryExtractedInformationFlags::Types) {
-            database.types = pdb.extract_types()?;
+            // database.types = pdb.extract_types()?;
+            database.types = windiff_app
+                .extract_types_from_pdb(&pdb.file_path)?
+                .into_iter()
+                .collect();
         }
     }
 
@@ -237,6 +269,8 @@ async fn generate_database_for_pe(
 }
 
 async fn generate_index(cfg: &WinDiffConfiguration, output_directory: &Path) -> Result<()> {
+    log::trace!("Generating database index");
+
     let index = DatabaseIndex {
         // Map configuration's OSes
         oses: cfg

@@ -1,6 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use crossbeam_channel::{Receiver, Sender};
+use pdb::TypeIndex;
 use resym_core::{
     backend::{Backend, BackendCommand},
     frontend::{FrontendCommand, FrontendController},
@@ -31,6 +32,8 @@ impl ResymFrontendController {
     }
 }
 
+const PDB_SLOT: usize = 0;
+
 /// Struct that represents our CLI application.
 /// It contains the whole application's context at all time.
 pub struct WinDiffApp {
@@ -51,12 +54,33 @@ impl WinDiffApp {
         })
     }
 
-    pub fn list_types(&self, pdb_path: &Path) -> Result<Vec<(String, String)>> {
-        const PDB_SLOT: usize = 0;
+    pub fn extract_types_from_pdb(&self, pdb_path: &Path) -> Result<Vec<(String, String)>> {
+        log::trace!("Extracting types from {:?}", pdb_path);
 
+        // Load PDB
+        self.load_pdb(pdb_path)?;
+
+        // Retrieve a list of all types present in the PDB
+        let type_list = self.list_types()?;
+
+        // Reconstruct all the types
+        let mut reconstructed_types = Vec::with_capacity(type_list.len());
+        for (type_identifier, type_id) in type_list {
+            if let Ok(recontructed_type) = self.reconstruct_type(type_id) {
+                reconstructed_types.push((type_identifier, recontructed_type));
+            }
+        }
+
+        self.unload_pdb()?;
+
+        Ok(reconstructed_types)
+    }
+
+    fn load_pdb(&self, pdb_path: &Path) -> Result<()> {
         // Request the backend to load the PDB
         self.backend
             .send_command(BackendCommand::LoadPDB(PDB_SLOT, pdb_path.to_path_buf()))?;
+
         // Wait for the backend to finish loading the PDB
         if let FrontendCommand::LoadPDBResult(result) = self.frontend_controller.rx_ui.recv()? {
             if let Err(err) = result {
@@ -71,6 +95,16 @@ impl WinDiffApp {
             ));
         }
 
+        Ok(())
+    }
+
+    fn unload_pdb(&self) -> Result<()> {
+        Ok(self
+            .backend
+            .send_command(BackendCommand::UnloadPDB(PDB_SLOT))?)
+    }
+
+    fn list_types(&self) -> Result<Vec<(String, TypeIndex)>> {
         // Queue a request for the backend to return the list of types that
         // match the given filter
         self.backend.send_command(BackendCommand::UpdateTypeFilter(
@@ -79,31 +113,36 @@ impl WinDiffApp {
             false,
             false,
         ))?;
+
         // Wait for the backend to finish filtering types
         if let FrontendCommand::UpdateFilteredTypes(type_list) =
             self.frontend_controller.rx_ui.recv()?
         {
-            let mut reconstructed_types = Vec::with_capacity(type_list.len());
-            for (type_identifier, type_id) in type_list {
-                // Queue a request for the backend to reconstruct the type
-                self.backend
-                    .send_command(BackendCommand::ReconstructTypeByIndex(
-                        PDB_SLOT,
-                        type_id,
-                        resym_core::pdb_types::PrimitiveReconstructionFlavor::Microsoft,
-                        false,
-                        false,
-                        false,
-                    ))?;
-                // Wait for the backend to finish reconstructing the type
-                if let FrontendCommand::ReconstructTypeResult(Ok(recontructed_type)) =
-                    self.frontend_controller.rx_ui.recv()?
-                {
-                    reconstructed_types.push((type_identifier, recontructed_type));
-                }
-            }
+            Ok(type_list)
+        } else {
+            Err(crate::error::WinDiffError::ResymBackendError(
+                "Invalid response received from the backend?".to_string(),
+            ))
+        }
+    }
 
-            Ok(reconstructed_types)
+    fn reconstruct_type(&self, type_id: TypeIndex) -> Result<String> {
+        // Queue a request for the backend to reconstruct the type
+        self.backend
+            .send_command(BackendCommand::ReconstructTypeByIndex(
+                PDB_SLOT,
+                type_id,
+                resym_core::pdb_types::PrimitiveReconstructionFlavor::Microsoft,
+                false,
+                false,
+                false,
+            ))?;
+
+        // Wait for the backend to finish reconstructing the type
+        if let FrontendCommand::ReconstructTypeResult(result) =
+            self.frontend_controller.rx_ui.recv()?
+        {
+            Ok(result?)
         } else {
             Err(crate::error::WinDiffError::ResymBackendError(
                 "Invalid response received from the backend?".to_string(),
