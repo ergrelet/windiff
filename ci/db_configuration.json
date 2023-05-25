@@ -654,6 +654,11 @@
             "version": "1809",
             "update": "KB5019966",
             "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5026446",
+            "architecture": "amd64"
         }
     ],
     "binaries": {
