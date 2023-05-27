@@ -30,25 +30,35 @@ pub async fn get_remote_index_for_pe(pe_name: &str) -> Result<serde_json::Value>
     let index_file_amd64_url = generate_index_file_url(pe_name, OSArchitecture::Amd64)?;
     let index_file_arm64_url = generate_index_file_url(pe_name, OSArchitecture::Arm64)?;
 
+    let mut multiarch_index = serde_json::Value::default();
     // Get compressed index files
-    let compressed_index_file_amd64 = reqwest::get(index_file_amd64_url)
-        .await?
-        .error_for_status()?
-        .bytes()
-        .await?;
-    let compressed_index_file_arm64 = reqwest::get(index_file_arm64_url)
-        .await?
-        .error_for_status()?
-        .bytes()
-        .await?;
+    if let Ok(compressed_index_file_amd64) = download_file(index_file_amd64_url).await {
+        // Decompress and parse the index file
+        let amd64_index = parse_compressed_index_file(&compressed_index_file_amd64[..]).await?;
+        // Merge indexes into one
+        merge_json_values(&mut multiarch_index, &amd64_index);
+    } else {
+        log::warn!("No index found for PE '{}' (amd64)", pe_name);
+    }
 
-    // Decompress and parse the index file
-    let mut multiarch_index = parse_compressed_index_file(&compressed_index_file_amd64[..]).await?;
-    let arm64_index = parse_compressed_index_file(&compressed_index_file_arm64[..]).await?;
-    // Merge indexes into one
-    merge_json_values(&mut multiarch_index, &arm64_index);
+    if let Ok(compressed_index_file_arm64) = download_file(index_file_arm64_url).await {
+        // Decompress and parse the index file
+        let arm64_index = parse_compressed_index_file(&compressed_index_file_arm64[..]).await?;
+        // Merge indexes into one
+        merge_json_values(&mut multiarch_index, &arm64_index);
+    } else {
+        log::warn!("No index found for PE '{}' (arm64)", pe_name);
+    }
 
     Ok(multiarch_index)
+}
+
+async fn download_file(file_url: url::Url) -> Result<bytes::Bytes> {
+    Ok(reqwest::get(file_url)
+        .await?
+        .error_for_status()?
+        .bytes()
+        .await?)
 }
 
 // Recursive algorithm to merge two JSON objects

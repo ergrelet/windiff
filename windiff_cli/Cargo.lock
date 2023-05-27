@@ -1634,6 +1634,7 @@ name = "windiff_cli"
 version = "0.1.0"
 dependencies = [
  "async-compression",
+ "bytes",
  "crossbeam-channel",
  "enumflags2",
  "env_logger",
