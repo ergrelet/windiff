@@ -27,12 +27,12 @@ use crate::{
 /// generated databases.
 #[derive(Serialize, Debug, Default)]
 pub struct DatabaseIndex {
-    pub oses: Vec<OSVersion>,
-    pub binaries: Vec<String>,
+    pub oses: BTreeSet<OSVersion>,
+    pub binaries: BTreeSet<String>,
 }
 
 /// A version of Windows, defined as a triplet
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct OSVersion {
     pub version: String,
     pub update: String,
@@ -94,7 +94,7 @@ pub async fn generate_databases(
     .await;
 
     // Generate database index
-    generate_index(cfg, output_directory).await?;
+    generate_index(downloaded_binaries, output_directory).await?;
 
     Ok(())
 }
@@ -210,22 +210,27 @@ async fn generate_database_for_pe(
     Ok(())
 }
 
-async fn generate_index(cfg: &WinDiffConfiguration, output_directory: &Path) -> Result<()> {
+async fn generate_index(
+    downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
+    output_directory: &Path,
+) -> Result<()> {
     log::trace!("Generating database index");
 
     let index = DatabaseIndex {
         // Map configuration's OSes
-        oses: cfg
-            .oses
+        oses: downloaded_binaries
             .iter()
-            .map(|os| OSVersion {
-                version: os.version.clone(),
-                update: os.update.clone(),
-                architecture: os.architecture.to_str().to_string(),
+            .map(|(pe_version, _)| OSVersion {
+                version: pe_version.os_version.clone(),
+                update: pe_version.os_update.clone(),
+                architecture: pe_version.architecture.to_str().to_string(),
             })
             .collect(),
         // Map configuration's binaries
-        binaries: cfg.binaries.keys().cloned().collect(),
+        binaries: downloaded_binaries
+            .iter()
+            .map(|(pe_version, _)| pe_version.original_name.clone())
+            .collect(),
     };
 
     // Serialize index
