@@ -1163,6 +1163,62 @@
                 "TYPES"
             ]
         },
+        "win32kbase.sys": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
+        "win32kfull.sys": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
+        "cng.sys": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
+        "ci.dll": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
+        "hal.dll": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
+        "bootvid.dll": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
+        "kdcom.dll": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
         "ntdll.dll": {
             "extracted_information": [
                 "EXPORTS",
@@ -1180,6 +1236,14 @@
             ]
         },
         "kernel32.dll": {
+            "extracted_information": [
+                "EXPORTS",
+                "DEBUG_SYMBOLS",
+                "MODULES",
+                "TYPES"
+            ]
+        },
+        "kernelbase.dll": {
             "extracted_information": [
                 "EXPORTS",
                 "DEBUG_SYMBOLS",
