@@ -3,8 +3,12 @@ export type WinDiffIndexData = {
   oses: WinDiffIndexOS[];
   binaries: WinDiffIndexBinary[];
 };
-type WinDiffIndexOS = { version: string; update: string; architecture: string };
-type WinDiffIndexBinary = string;
+export type WinDiffIndexOS = {
+  version: string;
+  update: string;
+  architecture: string;
+};
+export type WinDiffIndexBinary = string;
 
 // File data
 export type WinDiffFileData = {

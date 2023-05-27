@@ -7,7 +7,11 @@ import pako from "pako";
 
 import DarkTabs from "./tabs";
 import DarkCombobox from "./combobox";
-import { WinDiffFileData, WinDiffIndexData } from "./windiff_types";
+import {
+  WinDiffFileData,
+  WinDiffIndexData,
+  WinDiffIndexOS,
+} from "./windiff_types";
 
 const compressedJsonFetcher = async (url: string) => {
   const response = await fetch(url);
@@ -41,10 +45,10 @@ const tabNames = [
 
 export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
-  const [selectedType, setSelectedType] = useState("");
   let [leftOSVersion, setLeftOSVersion] = useState("");
   let [rightOSVersion, setRightOSVersion] = useState("");
   let [binary, setBinary] = useState("");
+  let [selectedType, setSelectedType] = useState("");
 
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR<WinDiffIndexData>(
@@ -56,18 +60,20 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   let rightFileName: string = "";
   if (indexData) {
     if (leftOSVersion.length == 0) {
-      leftOSVersion = osVersionToPathSuffix(indexData.oses[0]);
+      leftOSVersion = osVersionToHumanString(indexData.oses[0]);
     }
     if (rightOSVersion.length == 0) {
-      rightOSVersion = osVersionToPathSuffix(indexData.oses[0]);
+      rightOSVersion = osVersionToHumanString(indexData.oses[0]);
     }
     if (binary.length == 0) {
       binary = indexData.binaries[0];
     }
 
-    leftFileName = `${binary}_${leftOSVersion}.json.gz`;
+    const binaryVersion = humanOsVersionToPathSuffix(leftOSVersion);
+    leftFileName = `${binary}_${binaryVersion}.json.gz`;
     if (mode == ExplorerMode.Diff) {
-      rightFileName = `${binary}_${rightOSVersion}.json.gz`;
+      const binaryVersion = humanOsVersionToPathSuffix(rightOSVersion);
+      rightFileName = `${binary}_${binaryVersion}.json.gz`;
     }
   }
 
@@ -88,12 +94,43 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     return <div>Loading...</div>;
   }
 
+  // Setup the combobox used to select types if needed
+  const typesCombobox: JSX.Element = (() => {
+    if (leftFileData) {
+      let typeList: Set<string> | string[];
+      if (rightFileData) {
+        typeList = new Set(
+          Object.keys(leftFileData.types).concat(
+            Object.keys(rightFileData.types)
+          )
+        );
+      } else {
+        typeList = Object.keys(leftFileData.types);
+      }
+      if (selectedType.length == 0) {
+        // Select the first element of the list by default
+        selectedType = typeList.values().next().value;
+      }
+      if (currentTabId == Tab.Types) {
+        return (
+          <DarkCombobox
+            selectedOption={selectedType}
+            options={[...typeList]}
+            onChange={(value) => setSelectedType(value)}
+          />
+        );
+      }
+    }
+    return <></>;
+  })();
+
   // Prepare the appropriate data
   const compareStrings = (a: string, b: string) => (a > b ? 1 : b > a ? -1 : 0);
   const sortedOSes: string[] = indexData.oses
-    .map((osVersion: any) => osVersionToPathSuffix(osVersion))
+    .map((osVersion: any) => osVersionToHumanString(osVersion))
     .sort(compareStrings);
   const sortedBinaries: string[] = indexData.binaries.sort(compareStrings);
+
   // Data displayed on the left (in diff mode) or in the center (in browse mode)
   const leftData: string = (() => {
     if (!leftFileData) {
@@ -134,32 +171,12 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     return <></>;
   })();
 
-  // Setup the combobox used to select types if needed
-  const typesCombobox: JSX.Element = (() => {
-    if (leftFileData) {
-      let typeList: Set<string> | string[];
-      if (rightFileData) {
-        typeList = new Set(
-          Object.keys(leftFileData.types).concat(
-            Object.keys(rightFileData.types)
-          )
-        );
-      } else {
-        typeList = Object.keys(leftFileData.types);
-      }
-      if (currentTabId == Tab.Types) {
-        return (
-          <DarkCombobox
-            selectedOption={selectedType}
-            options={[...typeList]}
-            onChange={(value) => setSelectedType(value)}
-          />
-        );
-      }
-    }
-    return <></>;
-  })();
-
+  // Setup the combobox grid with 3 columns in browsing mode and 2 columns in
+  // diffing mode
+  const comboboxGridClass =
+    mode == ExplorerMode.Browse
+      ? "grid grid-cols-3 gap-2"
+      : "grid grid-cols-2 gap-2";
   const editorLanguage = currentTabId == Tab.Types ? "cpp" : "plaintext";
   return (
     <div className="flex flex-row justify-center items-center">
@@ -170,7 +187,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
           onChange={(value) => setCurrentTabId(value)}
         />
         {/* Comboboxes used to select the binary versions */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className={comboboxGridClass}>
           <DarkCombobox
             selectedOption={leftOSVersion}
             options={sortedOSes}
@@ -200,16 +217,39 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   );
 }
 
-function osVersionToHumanString(osVersion: any): string {
-  return `${osVersion.version} ${osVersion.architecture} (${osVersion.update})`;
+function osVersionToHumanString(osVersion: WinDiffIndexOS): string {
+  // Normalize version names between Windows 10 and 11
+  let versionPrefix = "";
+  if (!osVersion.version.startsWith("11")) {
+    // Windows 10
+    versionPrefix = "10-";
+  }
+
+  return `Windows ${versionPrefix}${osVersion.version} ${osVersion.architecture} (${osVersion.update})`;
 }
 
-function osVersionToPathSuffix(osVersion: any): string {
-  return `${osVersion.version}_${osVersion.update}_${osVersion.architecture}`;
+// Convert "human" versions of version strings to the corresponding file path suffixes
+function humanOsVersionToPathSuffix(osVersionName: string): string {
+  const versionParts = osVersionName.split(" ");
+  let osVersion = versionParts[1];
+  if (osVersion.startsWith("10-")) {
+    // Remove added prefix
+    osVersion = osVersion.substring(3);
+  }
+
+  const osArchitecture = versionParts[2];
+  const osUpdateWithParentheses = versionParts[3];
+  // Remove parentheses
+  const osUpdate = osUpdateWithParentheses.substring(
+    1,
+    osUpdateWithParentheses.length - 1
+  );
+
+  return `${osVersion}_${osUpdate}_${osArchitecture}`;
 }
 
 function getEditorDataFromFileData(
-  fileData: any,
+  fileData: WinDiffFileData,
   tab: Tab,
   selectedType: string | undefined
 ): string {
