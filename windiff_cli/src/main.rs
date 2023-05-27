@@ -7,6 +7,7 @@ mod pdb;
 mod resym_frontend;
 mod winbindex;
 
+use env_logger::Env;
 use structopt::StructOpt;
 
 use crate::{
@@ -17,9 +18,14 @@ use crate::{
     error::Result,
 };
 
+const PACKAGE_NAME: &str = env!("CARGO_PKG_NAME");
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::init();
+    env_logger::Builder::from_env(
+        Env::default().default_filter_or(format!("{}=info", PACKAGE_NAME)),
+    )
+    .init();
 
     // Parse command-line options
     let opt = WinDiffOpt::from_args();
@@ -29,7 +35,7 @@ async fn main() -> Result<()> {
     let cfg = WinDiffConfiguration::from_file(&opt.configuration).await?;
 
     // Download requested PEs
-    let tmp_directory = tempdir::TempDir::new("windiff")?;
+    let tmp_directory = tempdir::TempDir::new(PACKAGE_NAME)?;
     let output_directory = tmp_directory.path();
     log::info!("Downloading PEs...");
     let downloaded_pes = download_binaries(&cfg, output_directory).await?;
