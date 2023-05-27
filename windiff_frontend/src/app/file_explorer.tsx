@@ -6,7 +6,6 @@ import Editor from "@monaco-editor/react";
 import pako from "pako";
 
 import DarkTabs from "./tabs";
-import DarkListbox from "./listbox";
 import DarkCombobox from "./combobox";
 
 const compressedJsonFetcher = async (url: string) => {
@@ -71,6 +70,11 @@ export default function FileExplorer() {
   }
 
   // Prepare the appropriate data
+  const compareStrings = (a: string, b: string) => (a > b ? 1 : b > a ? -1 : 0);
+  const sortedOSes: string[] = indexData.oses
+    .map((osVersion: any) => osVersionToPathSuffix(osVersion))
+    .sort(compareStrings);
+  const sortedBinaries: string[] = indexData.binaries.sort(compareStrings);
   let data;
   let editorLanguage = "plaintext";
   let typesCombobox;
@@ -112,15 +116,13 @@ export default function FileExplorer() {
         <div className="grid grid-cols-3 gap-2">
           <DarkCombobox
             selectedOption={OSVersion}
-            options={indexData.oses.map((osVersion: any) =>
-              osVersionToPathSuffix(osVersion)
-            )}
+            options={sortedOSes}
             onChange={(value) => setOSVersion(value)}
           />
 
           <DarkCombobox
             selectedOption={binary}
-            options={indexData.binaries}
+            options={sortedBinaries}
             onChange={(value) => setBinary(value)}
           />
 

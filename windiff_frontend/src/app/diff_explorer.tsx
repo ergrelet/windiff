@@ -6,7 +6,6 @@ import { DiffEditor } from "@monaco-editor/react";
 import pako from "pako";
 
 import DarkTabs from "./tabs";
-import DarkListbox from "./listbox";
 import DarkCombobox from "./combobox";
 
 const compressedJsonFetcher = async (url: string) => {
@@ -81,6 +80,11 @@ export default function DiffExplorer() {
   }
 
   // Prepare the appropriate data
+  const compareStrings = (a: string, b: string) => (a > b ? 1 : b > a ? -1 : 0);
+  const sortedOSes: string[] = indexData.oses
+    .map((osVersion: any) => osVersionToPathSuffix(osVersion))
+    .sort(compareStrings);
+  const sortedBinaries: string[] = indexData.binaries.sort(compareStrings);
   let leftData;
   let rightData;
   if (!leftFileData) {
@@ -154,23 +158,19 @@ export default function DiffExplorer() {
         <div className="grid grid-cols-4 gap-2">
           <DarkCombobox
             selectedOption={leftOSVersion}
-            options={indexData.oses.map((osVersion: any) =>
-              osVersionToPathSuffix(osVersion)
-            )}
+            options={sortedOSes}
             onChange={(value) => setLeftOSVersion(value)}
           />
 
           <DarkCombobox
             selectedOption={rightOSVersion}
-            options={indexData.oses.map((osVersion: any) =>
-              osVersionToPathSuffix(osVersion)
-            )}
+            options={sortedOSes}
             onChange={(value) => setRightOSVersion(value)}
           />
 
           <DarkCombobox
             selectedOption={binary}
-            options={indexData.binaries}
+            options={sortedBinaries}
             onChange={(value) => setBinary(value)}
           />
 
