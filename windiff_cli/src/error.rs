@@ -2,7 +2,7 @@ use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, WinDiffError>;
 
-/// TODO
+/// WinDiff's main error type
 #[derive(Error, Debug)]
 pub enum WinDiffError {
     #[error("io error: {0}")]
@@ -27,10 +27,14 @@ pub enum WinDiffError {
     PDBError(#[from] pdb::Error),
     #[error("resym backend error: {0}")]
     ResymBackendError(String),
+    #[error("PE file not found in the configuration")]
+    FileNotFoundInConfiguration,
     #[error("PE file not found in the index")]
     FileNotFoundInIndex,
     #[error("unsupported executable format given")]
     UnsupportedExecutableFormat,
     #[error("unsupported architecture given")]
     UnsupportedArchitecture,
+    #[error("missing debug info for PE: {0}")]
+    MissingExecutableDebugInfo(String),
 }

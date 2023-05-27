@@ -5,14 +5,14 @@ use serde::{de::DeserializeOwned, Deserialize, Deserializer};
 use std::{collections::BTreeMap, path::Path};
 use tokio::{fs::File, io::AsyncReadExt};
 
-/// TODO
+/// Definition of WinDiff's JSON configuration file
 #[derive(Deserialize)]
 pub struct WinDiffConfiguration {
     pub oses: Vec<OSDescription>,
     pub binaries: BTreeMap<String, BinaryDescription>,
 }
 
-/// TODO
+/// A version of Windows, defined as a triplet
 #[derive(Deserialize)]
 pub struct OSDescription {
     pub version: String,
@@ -20,7 +20,7 @@ pub struct OSDescription {
     pub architecture: OSArchitecture,
 }
 
-/// TODO
+/// Target architecture of the OS
 #[derive(Deserialize, Debug, Copy, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum OSArchitecture {
@@ -31,13 +31,14 @@ pub enum OSArchitecture {
     Arm64,
 }
 
-/// Binary description
+/// Contains information on how to process a binary
 #[derive(Deserialize)]
 pub struct BinaryDescription {
     #[serde(deserialize_with = "deserialize_flags")]
     pub extracted_information: BinaryExtractedInformation,
 }
 
+/// Bitflag used to define which information to extract from binaries
 #[bitflags]
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize)]

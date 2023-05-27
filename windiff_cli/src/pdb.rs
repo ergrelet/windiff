@@ -79,12 +79,21 @@ pub async fn download_pdb_for_pe(pe_path: &Path, output_directory: &Path) -> Res
     // Parse PE and download corresponding PDB
     if let Object::PE(pe) = Object::parse(&file_data)? {
         // Generate PDB url
-        let pe_dbg_data = pe.debug_data.unwrap();
+        let pe_dbg_data = pe
+            .debug_data
+            .ok_or_else(|| WinDiffError::MissingExecutableDebugInfo("DebugData".to_string()))?;
         let pdb_download_url = generate_pdb_download_url(&pe_dbg_data)?;
         log::debug!("Found download URL for PDB: {}", pdb_download_url.as_str());
 
         // Download PDB
-        let output_pdb_path = format!("{}.pdb", pe_path.file_stem().unwrap().to_str().unwrap());
+        let output_pdb_path = format!(
+            "{}.pdb",
+            pe_path
+                .file_stem()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or_default()
+        );
         let output_file_path = output_directory.join(output_pdb_path);
         download_file(pdb_download_url, &output_file_path).await?;
 
@@ -97,9 +106,13 @@ pub async fn download_pdb_for_pe(pe_path: &Path, output_directory: &Path) -> Res
 fn generate_pdb_download_url(debug_data: &DebugData) -> Result<reqwest::Url> {
     let base_url = reqwest::Url::from_str(MSDL_FILE_DOWNLOAD_BASE_URL)?;
 
-    let code_view_info = debug_data.codeview_pdb70_debug_info.unwrap();
-    let pe_guid = debug_data.guid().unwrap();
-    let pe_age = code_view_info.age;
+    let code_view_info = debug_data.codeview_pdb70_debug_info.ok_or_else(|| {
+        WinDiffError::MissingExecutableDebugInfo("CodeView debug info".to_string())
+    })?;
+    let pdb_guid = debug_data
+        .guid()
+        .ok_or_else(|| WinDiffError::MissingExecutableDebugInfo("PDB GUID".to_string()))?;
+    let pdb_age = code_view_info.age;
     // Convert PDB name to UTF-8 and remove trailing zeroes
     let pdb_name = std::str::from_utf8(code_view_info.filename)?.trim_end_matches(char::from(0));
 
@@ -109,8 +122,8 @@ fn generate_pdb_download_url(debug_data: &DebugData) -> Result<reqwest::Url> {
         format!(
             "{}/{}{:x}/{}",
             pdb_name,
-            guid_to_str(&pe_guid)?,
-            pe_age,
+            guid_to_str(&pdb_guid)?,
+            pdb_age,
             pdb_name
         )
         .as_str(),
