@@ -152,24 +152,24 @@ export default function DiffExplorer() {
       <div className="max-w-6xl w-full space-y-2 py-2 pl-10 pr-10">
         <DarkTabs tabs={tabs} onChange={(value) => setCurrentTabId(value)} />
         <div className="grid grid-cols-4 gap-2">
-          <DarkListbox
-            value={leftOSVersion}
+          <DarkCombobox
+            selectedOption={leftOSVersion}
             options={indexData.oses.map((osVersion: any) =>
               osVersionToPathSuffix(osVersion)
             )}
             onChange={(value) => setLeftOSVersion(value)}
           />
 
-          <DarkListbox
-            value={rightOSVersion}
+          <DarkCombobox
+            selectedOption={rightOSVersion}
             options={indexData.oses.map((osVersion: any) =>
               osVersionToPathSuffix(osVersion)
             )}
             onChange={(value) => setRightOSVersion(value)}
           />
 
-          <DarkListbox
-            value={binary}
+          <DarkCombobox
+            selectedOption={binary}
             options={indexData.binaries}
             onChange={(value) => setBinary(value)}
           />

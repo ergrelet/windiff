@@ -110,16 +110,16 @@ export default function FileExplorer() {
       <div className="max-w-4xl w-full space-y-2 py-2 pl-10 pr-10">
         <DarkTabs tabs={tabs} onChange={(value) => setCurrentTabId(value)} />
         <div className="grid grid-cols-3 gap-2">
-          <DarkListbox
-            value={OSVersion}
+          <DarkCombobox
+            selectedOption={OSVersion}
             options={indexData.oses.map((osVersion: any) =>
               osVersionToPathSuffix(osVersion)
             )}
             onChange={(value) => setOSVersion(value)}
           />
 
-          <DarkListbox
-            value={binary}
+          <DarkCombobox
+            selectedOption={binary}
             options={indexData.binaries}
             onChange={(value) => setBinary(value)}
           />
