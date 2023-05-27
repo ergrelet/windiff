@@ -23,6 +23,7 @@ class WinDiffConfiguration(TypedDict):
 
 def main(configuration_path: str,
          kb_date_limit: Optional[str] = None,
+         replace_configuration: bool = False,
          dry_run: bool = False) -> None:
     """
     Main routine of the script.
@@ -46,7 +47,10 @@ def main(configuration_path: str,
     if new_update_count > 0:
         print(f"Found {new_update_count} new update(s) on Winbindex!")
         if not dry_run:
-            update_windiff_config(missing_updates, json_config)
+            if replace_configuration:
+                replace_windiff_config(available_os_versions, json_config)
+            else:
+                update_windiff_config(missing_updates, json_config)
             json.dump(json_config, open(configuration_path, "w"), indent=4)
             print("Configuration file has been updated!")
 
@@ -106,12 +110,23 @@ def get_configured_os_versions(
             config_oses))
 
 
+def replace_windiff_config(os_updates: Set[Tuple[str, str, str]],
+                           json_config: WinDiffConfiguration) -> None:
+    """
+    Update WinDiff configuration file by replacing the existing update list.
+    """
+    # Replace previous configuration
+    json_config["oses"].clear()
+    update_windiff_config(os_updates, json_config)
+
+
 def update_windiff_config(new_os_updates: Set[Tuple[str, str, str]],
                           json_config: WinDiffConfiguration) -> None:
     """
     Update WinDiff configuration file by adding new updates to it.
     """
     config_oses = json_config["oses"]
+    # Extend previous configuration
     config_oses.extend(
         map(
             lambda update: {

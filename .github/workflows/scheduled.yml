@@ -39,7 +39,7 @@ jobs:
 
       - name: Run periodic update
         run: |
-          python ci/fetch_update.py ci/db_configuration.json --kb-date-limit "1 year ago"
+          python ci/fetch_update.py ci/db_configuration.json --kb-date-limit "1 year ago" --replace-configuration
 
       - name: Commit & Push changes
         uses: actions-js/push@master
