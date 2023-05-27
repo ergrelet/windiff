@@ -31,4 +31,6 @@ pub enum WinDiffError {
     FileNotFoundInIndex,
     #[error("unsupported executable format given")]
     UnsupportedExecutableFormat,
+    #[error("unsupported architecture given")]
+    UnsupportedArchitecture,
 }

@@ -103,7 +103,7 @@ async fn download_pe_versions(
 
     // Download all requested versions concurrently
     futures::stream::iter(os_descriptions.iter().map(|os_desc| async {
-        winbindex::download_pe_version(
+        let download_result = winbindex::download_pe_version(
             pe_index,
             binary_name,
             &os_desc.version,
@@ -111,7 +111,18 @@ async fn download_pe_versions(
             &os_desc.architecture,
             output_directory,
         )
-        .await
+        .await;
+        if download_result.is_err() {
+            log::warn!(
+                "Failed to download PE '{}' (version '{}-{}-{}')",
+                binary_name,
+                &os_desc.version,
+                &os_desc.update,
+                os_desc.architecture.to_str(),
+            );
+        }
+
+        download_result
     }))
     .buffer_unordered(CONCURRENT_PE_DOWNLOADS)
     // Ignore errors and simply skip the corresponding files

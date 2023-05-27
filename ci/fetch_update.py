@@ -8,6 +8,7 @@ import requests
 import dateparser
 
 WINBINDEX_UPDATES_AMD64_URL = "https://winbindex.m417z.com/data/updates_last.json"
+WINBINDEX_UPDATES_ARM64_URL = "https://m417z.com/winbindex-data-arm64/updates_last.json"
 
 # Winbindex
 WinbindexOSUpdates = Dict[str, Any]
@@ -56,11 +57,14 @@ def get_winbindex_available_os_versions(
     """
     Fetch updates from Winbindex.
     """
-    response = requests.get(WINBINDEX_UPDATES_AMD64_URL)
-    updates = response.json()
+    updates_json_amd64 = requests.get(WINBINDEX_UPDATES_AMD64_URL).json()
+    updates_json_arm64 = requests.get(WINBINDEX_UPDATES_ARM64_URL).json()
 
-    return extract_winbindex_os_versions(updates, "amd64", base_only,
-                                         kb_date_limit)
+    updates_amd64 = extract_winbindex_os_versions(updates_json_amd64, "amd64",
+                                                  base_only, kb_date_limit)
+    updates_arm64 = extract_winbindex_os_versions(updates_json_arm64, "arm64",
+                                                  base_only, kb_date_limit)
+    return updates_amd64.union(updates_arm64)
 
 
 def extract_winbindex_os_versions(

@@ -10,8 +10,10 @@ use std::{
 
 use crate::{configuration::OSArchitecture, error::Result};
 
-const WINBINDEX_BY_FILENAME_BASE_URL: &str =
+const WINBINDEX_BY_FILENAME_AMD64_BASE_URL: &str =
     "https://winbindex.m417z.com/data/by_filename_compressed/";
+const WINBINDEX_BY_FILENAME_ARM64_BASE_URL: &str =
+    "https://m417z.com/winbindex-data-arm64/by_filename_compressed/";
 const MSDL_FILE_DOWNLOAD_BASE_URL: &str = "https://msdl.microsoft.com/download/symbols/";
 
 #[derive(Debug)]
@@ -25,13 +27,42 @@ pub struct DownloadedPEVersion {
 }
 
 pub async fn get_remote_index_for_pe(pe_name: &str) -> Result<serde_json::Value> {
-    let index_file_url = generate_index_file_url(pe_name)?;
-    // Get compressed index file
-    let http_response = reqwest::get(index_file_url).await?.error_for_status()?;
-    let compressed_index_file = http_response.bytes().await?;
+    let index_file_amd64_url = generate_index_file_url(pe_name, OSArchitecture::Amd64)?;
+    let index_file_arm64_url = generate_index_file_url(pe_name, OSArchitecture::Arm64)?;
+
+    // Get compressed index files
+    let compressed_index_file_amd64 = reqwest::get(index_file_amd64_url)
+        .await?
+        .error_for_status()?
+        .bytes()
+        .await?;
+    let compressed_index_file_arm64 = reqwest::get(index_file_arm64_url)
+        .await?
+        .error_for_status()?
+        .bytes()
+        .await?;
 
     // Decompress and parse the index file
-    parse_compressed_index_file(&compressed_index_file[..]).await
+    let mut multiarch_index = parse_compressed_index_file(&compressed_index_file_amd64[..]).await?;
+    let arm64_index = parse_compressed_index_file(&compressed_index_file_arm64[..]).await?;
+    // Merge indexes into one
+    merge_json_values(&mut multiarch_index, &arm64_index);
+
+    Ok(multiarch_index)
+}
+
+// Recursive algorithm to merge two JSON objects
+fn merge_json_values(a: &mut serde_json::Value, b: &serde_json::Value) {
+    match (a, b) {
+        (&mut serde_json::Value::Object(ref mut a), serde_json::Value::Object(b)) => {
+            for (k, v) in b {
+                merge_json_values(a.entry(k.clone()).or_insert(serde_json::Value::Null), v);
+            }
+        }
+        (a, b) => {
+            *a = b.clone();
+        }
+    }
 }
 
 pub async fn download_pe_version(
@@ -53,9 +84,10 @@ pub async fn download_pe_version(
     let pe_info = get_pe_info_from_index(pe_index, os_version, os_update, os_architecture)?;
     let pe_download_url = generate_file_download_url(pe_name, &pe_info)?;
     log::debug!(
-        "Found download URL for version '{}-{}': {}",
+        "Found download URL for version '{}-{}-{}': {}",
         os_version,
         os_update,
+        os_architecture.to_str(),
         pe_download_url.as_str()
     );
 
@@ -101,9 +133,19 @@ struct FileInformation {
     // Note(ergrelet): there are other fields but we don't use them at the moment, so we ignore them
 }
 
-fn generate_index_file_url(pe_name: &str) -> Result<reqwest::Url> {
-    // Note(ergrelet): static str that we control, unwrap shouldn't fail
-    let base_url = reqwest::Url::from_str(WINBINDEX_BY_FILENAME_BASE_URL).unwrap();
+fn generate_index_file_url(pe_name: &str, architecture: OSArchitecture) -> Result<reqwest::Url> {
+    // Note(ergrelet): static strs that we control, unwrap shouldn't fail
+    let base_url = match architecture {
+        OSArchitecture::Amd64 | OSArchitecture::Wow64 => {
+            reqwest::Url::from_str(WINBINDEX_BY_FILENAME_AMD64_BASE_URL).unwrap()
+        }
+        OSArchitecture::Arm64 => {
+            reqwest::Url::from_str(WINBINDEX_BY_FILENAME_ARM64_BASE_URL).unwrap()
+        }
+        _ => {
+            return Err(crate::error::WinDiffError::UnsupportedArchitecture);
+        }
+    };
 
     Ok(base_url.join(format!("{}.json.gz", pe_name).as_str())?)
 }
