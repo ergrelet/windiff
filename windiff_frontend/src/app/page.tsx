@@ -3,8 +3,7 @@
 import { useState } from "react";
 
 import TopNavBar from "./navbar";
-import DiffExplorer from "./diff_explorer";
-import FileExplorer from "./file_explorer";
+import DataExplorer, { ExplorerMode } from "./data_explorer";
 
 enum NavigationButton {
   Browsing = 0,
@@ -28,22 +27,22 @@ export default function Home() {
     },
   ];
 
-  // Select main component to display
-  let mainComponent;
+  // Select data explorer mode
+  let explorerMode;
   switch (currentNavigationButton) {
     default:
     case NavigationButton.Browsing:
-      mainComponent = <FileExplorer />;
+      explorerMode = ExplorerMode.Browse;
       break;
     case NavigationButton.Diffing:
-      mainComponent = <DiffExplorer />;
+      explorerMode = ExplorerMode.Diff;
       break;
   }
 
   return (
     <main>
       <TopNavBar buttons={navigationButtons} />
-      {mainComponent}
+      <DataExplorer mode={explorerMode} />
     </main>
   );
 }

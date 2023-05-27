@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, Fragment } from "react";
-import { Disclosure, Menu, Transition } from "@headlessui/react";
+import { useState } from "react";
+import { Disclosure } from "@headlessui/react";
 import {
   XMarkIcon,
   Bars3Icon,
