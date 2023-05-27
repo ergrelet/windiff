@@ -134,7 +134,7 @@ fn guid_to_str(guid: &[u8; 16]) -> Result<String> {
     let last_part = hex::encode(rest);
 
     Ok(format!(
-        "{:X}{:X}{:X}{:X}{}",
+        "{:08X}{:04X}{:04X}{:04X}{}",
         first_part, second_part, third_part, fourth_part, last_part
     ))
 }

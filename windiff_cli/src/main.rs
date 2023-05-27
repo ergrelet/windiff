@@ -307,9 +307,19 @@ async fn download_pdbs(
 
     // Download all requested versions concurrently
     futures::stream::iter(downloaded_pes.into_iter().map(|pe_version| async move {
-        let pdb_path_opt = pdb::download_pdb_for_pe(&pe_version.path, output_directory)
-            .await
-            .ok();
+        let pdb_path_opt = if let Ok(pdb_path) =
+            pdb::download_pdb_for_pe(&pe_version.path, output_directory).await
+        {
+            Some(pdb_path)
+        } else {
+            log::warn!(
+                "Failed to download PDB for PE '{}', version {}-{}",
+                pe_version.original_name,
+                pe_version.os_version,
+                pe_version.os_update
+            );
+            None
+        };
 
         Ok((pe_version, pdb_path_opt))
     }))
