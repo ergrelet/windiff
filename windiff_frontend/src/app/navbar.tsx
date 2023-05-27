@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 
 import AboutModal from "./about";
+import Link from "next/link";
 
 export default function TopNavBar({
   buttons,
@@ -42,20 +43,22 @@ export default function TopNavBar({
                 </div>
                 <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                   <div className="flex flex-shrink-0 items-center">
-                    <Image
-                      className="block h-8 w-auto lg:hidden"
-                      src="/WinDiffLogoWhite.png"
-                      width={200}
-                      height={100}
-                      alt="WinDiff Logo"
-                    />
-                    <Image
-                      className="hidden h-8 w-auto lg:block"
-                      src="/WinDiffLogoWhite.png"
-                      width={200}
-                      height={100}
-                      alt="WinDiff Logo"
-                    />
+                    <Link href="/">
+                      <Image
+                        className="block h-8 w-auto lg:hidden"
+                        src="/WinDiffLogoWhite.png"
+                        width={200}
+                        height={100}
+                        alt="WinDiff Logo"
+                      />
+                      <Image
+                        className="hidden h-8 w-auto lg:block"
+                        src="/WinDiffLogoWhite.png"
+                        width={200}
+                        height={100}
+                        alt="WinDiff Logo"
+                      />
+                    </Link>
                   </div>
                   <div className="hidden sm:ml-6 sm:block">
                     <div className="flex space-x-4">
