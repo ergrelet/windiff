@@ -12,7 +12,7 @@ export default function DarkCombobox({
   selectedOption: string;
   options: string[];
   onChange?(value: any): void;
-}) {
+}): JSX.Element {
   const [query, setQuery] = useState("");
 
   const filteredOptions =

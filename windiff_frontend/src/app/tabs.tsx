@@ -6,7 +6,7 @@ export default function DarkTabs({
 }: {
   tabs: string[];
   onChange?(value: any): void;
-}) {
+}): JSX.Element {
   return (
     <div className="w-full">
       <Tab.Group onChange={onChange}>
@@ -33,6 +33,6 @@ export default function DarkTabs({
   );
 }
 
-function classNames(...classes: any[]) {
+function classNames(...classes: any[]): string {
   return classes.filter(Boolean).join(" ");
 }

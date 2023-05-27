@@ -12,7 +12,7 @@ export default function DarkListbox({
   value: string;
   options: string[];
   onChange?(value: any): void;
-}) {
+}): JSX.Element {
   return (
     <Listbox value={value} onChange={onChange}>
       <div className="relative mt-1">

@@ -11,7 +11,11 @@ import Image from "next/image";
 
 import AboutModal from "./about";
 
-export default function TopNavBar({ buttons }: { buttons: any[] }) {
+export default function TopNavBar({
+  buttons,
+}: {
+  buttons: any[];
+}): JSX.Element {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   return (
@@ -117,6 +121,6 @@ export default function TopNavBar({ buttons }: { buttons: any[] }) {
   );
 }
 
-function classNames(...classes: any[]) {
+function classNames(...classes: any[]): string {
   return classes.filter(Boolean).join(" ");
 }

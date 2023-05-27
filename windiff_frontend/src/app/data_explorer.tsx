@@ -7,6 +7,7 @@ import pako from "pako";
 
 import DarkTabs from "./tabs";
 import DarkCombobox from "./combobox";
+import { WinDiffFileData, WinDiffIndexData } from "./windiff_types";
 
 const compressedJsonFetcher = async (url: string) => {
   const response = await fetch(url);
@@ -46,13 +47,13 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   let [binary, setBinary] = useState("");
 
   // Fetch index content
-  const { data: indexData, error: indexError } = useSWR(
+  const { data: indexData, error: indexError } = useSWR<WinDiffIndexData>(
     indexFilePath,
     compressedJsonFetcher
   );
 
-  let leftFileName = "";
-  let rightFileName = "";
+  let leftFileName: string = "";
+  let rightFileName: string = "";
   if (indexData) {
     if (leftOSVersion.length == 0) {
       leftOSVersion = osVersionToPathSuffix(indexData.oses[0]);
@@ -70,11 +71,11 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     }
   }
 
-  let { data: leftFileData, error: leftFileError } = useSWR(
+  let { data: leftFileData, error: leftFileError } = useSWR<WinDiffFileData>(
     `/${leftFileName}`,
     compressedJsonFetcher
   );
-  let { data: rightFileData, error: rightFileError } = useSWR(
+  let { data: rightFileData, error: rightFileError } = useSWR<WinDiffFileData>(
     `/${rightFileName}`,
     compressedJsonFetcher
   );
@@ -94,7 +95,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     .sort(compareStrings);
   const sortedBinaries: string[] = indexData.binaries.sort(compareStrings);
   // Data displayed on the left (in diff mode) or in the center (in browse mode)
-  const leftData = (() => {
+  const leftData: string = (() => {
     if (!leftFileData) {
       return leftFileError ? "" : "Loading...";
     } else {
@@ -106,7 +107,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     }
   })();
   // Data displayed on the right (in diff mode)
-  const rightData = (() => {
+  const rightData: string = (() => {
     if (!rightFileData) {
       return rightFileError ? "" : "Loading...";
     } else {
@@ -120,7 +121,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
 
   // Setup the a second combobox to select the OS version displayed on the right
   // if needed
-  const rightOSCombobox = (() => {
+  const rightOSCombobox: JSX.Element = (() => {
     if (mode == ExplorerMode.Diff) {
       return (
         <DarkCombobox
@@ -134,7 +135,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   })();
 
   // Setup the combobox used to select types if needed
-  const typesCombobox = (() => {
+  const typesCombobox: JSX.Element = (() => {
     if (leftFileData) {
       let typeList: Set<string> | string[];
       if (rightFileData) {
@@ -211,7 +212,7 @@ function getEditorDataFromFileData(
   fileData: any,
   tab: Tab,
   selectedType: string | undefined
-) {
+): string {
   switch (tab) {
     default:
     case Tab.Exports:
@@ -237,7 +238,7 @@ function WinDiffEditor({
   language: string;
   leftData: string;
   rightData: string;
-}) {
+}): JSX.Element {
   switch (mode) {
     default:
     case ExplorerMode.Browse:
@@ -268,7 +269,7 @@ function DiffView({
   oldRevision: string;
   newRevision: string;
   language: string;
-}) {
+}): JSX.Element {
   return (
     <DiffEditor
       height="63vh"

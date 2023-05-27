@@ -8,7 +8,7 @@ export default function AboutModal({
 }: {
   open?: boolean;
   onClose(value: boolean): void;
-}) {
+}): JSX.Element {
   const title = "About";
   const content = (
     <div className="mt-2">
@@ -84,7 +84,13 @@ export default function AboutModal({
   );
 }
 
-function Hyperlink({ name, target }: { name: string; target: string }) {
+function Hyperlink({
+  name,
+  target,
+}: {
+  name: string;
+  target: string;
+}): JSX.Element {
   return (
     <div className="inline-flex items-baseline">
       <a href={target} target="_blank" className="text-blue-900">
