@@ -1,6 +1,6 @@
 [package]
 name = "windiff_cli"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 [profile.release]
@@ -14,7 +14,7 @@ thiserror = "1.0"
 tokio = { version = "1.28.0", features = ["full"] }
 futures = "0.3"
 url = "2.3"
-reqwest = { version = "0.11", features = ["stream"] }
+reqwest = { version = "0.11", default-features = false, features = ["stream", "rustls-tls"] }
 async-compression = { version = "0.3", features = ["gzip", "tokio"] }
 tempdir = "0.3"
 goblin = "0.6"

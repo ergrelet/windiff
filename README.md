@@ -31,12 +31,17 @@ allows browsing information extracted from official Microsoft PEs and PDBs for
 certain versions of Microsoft Windows and also allows comparing this information
 between versions. The frontend's code is in the `windiff_frontend` directory.
 
-A scheduled GitHub action fetches new updates from Winbindex every day and
+A scheduled GitHub action fetches new updates from `Winbindex` every day and
 updates the configuration file used to generate the live version of WinDiff.
 Currently, because of (free plans) storage and compute limitations, **only KB**
 **updates less than one year old are kept** for the live version. You can of
 course rebuild a local version of WinDiff yourself, without those limitations if
 you need to. See the next section for that.
+
+Note: `Winbindex` doesn't provide unique download links for 100% of the indexed
+files, so it might happen that some PEs' information are unavailable in WinDiff
+because of that. However, as soon as these PEs are on VirusTotal, these will be
+integrated into WinDiff automatically.
 
 ## How to Build
 
