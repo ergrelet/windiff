@@ -1,0 +1,69 @@
+name: Build releases
+on:
+  push:
+    tags:
+      - v[0-9]+.*
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-cross-linux:
+    runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: full
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: x86_64-unknown-linux-musl
+          toolchain: stable
+          default: true
+          override: true
+      - name: Build x86_64-unknown-linux-musl
+        timeout-minutes: 120
+        working-directory: ./windiff_cli
+        run: |
+          cargo build --release --target x86_64-unknown-linux-musl &&
+          mv target/x86_64-unknown-linux-musl/release/windiff_cli target/x86_64-unknown-linux-musl/release/windiff_cli-x86_64-unknown-linux-musl
+
+      - name: Upload Github Assets
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ./windiff_cli
+        with:
+          files: |
+            target/x86_64-unknown-linux-musl/release/windiff_cli-x86_64-unknown-linux-musl
+
+  build-windows:
+    runs-on: windows-latest
+    env:
+      RUST_BACKTRACE: full
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: x86_64-pc-windows-msvc
+          toolchain: stable
+          default: true
+          override: true
+      - name: Build release
+        shell: bash
+        working-directory: ./windiff_cli
+        run: |
+          cargo build --release --target x86_64-pc-windows-msvc &&
+          mv target/x86_64-pc-windows-msvc/release/windiff_cli.exe target/x86_64-pc-windows-msvc/release/windiff_cli-x86_64-pc-windows-msvc.exe
+
+      - name: Upload Github Assets
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ./windiff_cli
+        with:
+          files: |
+            target/x86_64-pc-windows-msvc/release/windiff_cli-x86_64-pc-windows-msvc.exe
