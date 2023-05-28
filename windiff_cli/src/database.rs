@@ -62,6 +62,7 @@ pub struct BinaryMetadata {
 pub async fn generate_databases(
     cfg: &WinDiffConfiguration,
     downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
+    generate_index: bool,
     output_directory: &Path,
 ) -> Result<()> {
     const CONCURRENT_DB_GENERATIONS: usize = 16;
@@ -93,8 +94,10 @@ pub async fn generate_databases(
     .collect::<()>()
     .await;
 
-    // Generate database index
-    generate_index(downloaded_binaries, output_directory).await?;
+    if generate_index {
+        // Generate database index
+        generate_database_index(downloaded_binaries, output_directory).await?;
+    }
 
     Ok(())
 }
@@ -210,7 +213,7 @@ async fn generate_database_for_pe(
     Ok(())
 }
 
-async fn generate_index(
+pub async fn generate_database_index(
     downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
     output_directory: &Path,
 ) -> Result<()> {
