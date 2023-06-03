@@ -48,6 +48,7 @@ pub enum BinaryExtractedInformationFlags {
     DebugSymbols,
     Modules,
     Types,
+    Syscalls,
 }
 
 pub type BinaryExtractedInformation = BitFlags<BinaryExtractedInformationFlags>;
@@ -67,7 +68,7 @@ impl WinDiffConfiguration {
 }
 
 impl OSArchitecture {
-    pub fn to_str(self) -> &'static str {
+    pub const fn to_str(self) -> &'static str {
         match self {
             OSArchitecture::I386 => "i386",
             OSArchitecture::Wow64 => "wow64",
@@ -78,7 +79,7 @@ impl OSArchitecture {
     }
 
     // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#machine-types
-    pub fn to_machine_type(self) -> u32 {
+    pub const fn to_machine_type(self) -> u16 {
         match self {
             OSArchitecture::I386 | OSArchitecture::Wow64 => 0x14c,
             OSArchitecture::Amd64 => 0x8664,

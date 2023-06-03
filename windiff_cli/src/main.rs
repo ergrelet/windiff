@@ -5,6 +5,7 @@ mod download;
 mod error;
 mod pdb;
 mod resym_frontend;
+mod syscalls;
 mod winbindex;
 
 use database::generate_database_index;

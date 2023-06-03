@@ -19,6 +19,7 @@ use crate::{
     error::{Result, WinDiffError},
     pdb::Pdb,
     resym_frontend::WinDiffApp,
+    syscalls::extract_syscalls,
     winbindex::DownloadedPEVersion,
 };
 
@@ -50,6 +51,8 @@ pub struct BinaryDatabase {
     pub modules: BTreeSet<String>,
     /// Debug types (type identifier -> reconstructed type)
     pub types: BTreeMap<String, String>,
+    // Syscalls detected in the binary (for relevant executables)
+    pub syscalls: BTreeMap<u32, String>,
 }
 
 #[derive(Serialize, Debug, Default)]
@@ -147,6 +150,7 @@ async fn generate_database_for_pe_version(
             windiff_app,
             pe_version,
             pe,
+            &file_data,
             pdb,
             &binary_desc.extracted_information,
             output_file,
@@ -163,6 +167,7 @@ async fn generate_database_for_pe(
     windiff_app: &WinDiffApp,
     pe_version: &DownloadedPEVersion,
     pe: pe::PE<'_>,
+    pe_data: &[u8],
     pdb: Option<Pdb<'_>>,
     extracted_information: &BinaryExtractedInformation,
     output_path: impl AsRef<Path>,
@@ -193,11 +198,14 @@ async fn generate_database_for_pe(
         }
         // Extract debug types
         if extracted_information.contains(BinaryExtractedInformationFlags::Types) {
-            // database.types = pdb.extract_types()?;
             database.types = windiff_app
                 .extract_types_from_pdb(&pdb.file_path)?
                 .into_iter()
                 .collect();
+        }
+        // Extract syscalls
+        if extracted_information.contains(BinaryExtractedInformationFlags::Syscalls) {
+            database.syscalls = extract_syscalls(pe, pe_data)?.into_iter().collect();
         }
     }
 

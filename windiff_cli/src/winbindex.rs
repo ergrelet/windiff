@@ -136,7 +136,7 @@ struct FileObject {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct FileInformation {
-    machine_type: u32,
+    machine_type: u16,
     virtual_size: u64,
     timestamp: u32,
     version: Option<String>,
