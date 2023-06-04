@@ -16,4 +16,5 @@ export type WinDiffFileData = {
   symbols: string[];
   modules: string[];
   types: { [typeName: string]: string };
+  syscalls: { [syscallId: string]: string };
 };

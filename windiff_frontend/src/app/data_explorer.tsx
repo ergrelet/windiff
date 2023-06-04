@@ -12,6 +12,7 @@ import {
   WinDiffIndexData,
   WinDiffIndexOS,
 } from "./windiff_types";
+import OptionsMenu from "./options_menu";
 
 const compressedJsonFetcher = async (url: string) => {
   const response = await fetch(url);
@@ -20,6 +21,7 @@ const compressedJsonFetcher = async (url: string) => {
   const jsonString = pako.inflate(uintArray, { to: "string" });
   return JSON.parse(jsonString);
 };
+const compareStrings = (a: string, b: string) => (a > b ? 1 : b > a ? -1 : 0);
 
 export enum ExplorerMode {
   Browse = 0,
@@ -32,23 +34,39 @@ enum Tab {
   Modules = 2,
   TypeList = 3,
   Types = 4,
+  Sycalls = 5,
 }
 
-const indexFilePath = "/index.json.gz";
-const tabNames = [
+const indexFilePath: string = "/index.json.gz";
+const tabNames: string[] = [
   "Exported Symbols",
   "Debug Symbols",
   "Modules",
   "Types",
   "Reconstructed Types",
+  "Syscalls",
 ];
 
+// List of binaries we support syscall extraction for
+const supportedBinariesForSyscalls: string[] = ["ntdll.dll", "win32u.dll"];
+
 export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
+  // Tab selection
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
+  // OS and binary selection
   let [leftOSVersion, setLeftOSVersion] = useState("");
   let [rightOSVersion, setRightOSVersion] = useState("");
   let [binary, setBinary] = useState("");
+  // Type selection
   let [selectedType, setSelectedType] = useState("");
+  // Syscall options
+  const [orderSyscallsByName, setOrderSyscallsByName] = useState(true);
+  const [displaySyscallIds, setDisplaySyscallIds] = useState(false);
+  let [displaySyscallNames, setDisplaySyscallNames] = useState(true);
+  // Force displaying at least syscall names
+  if (!displaySyscallIds && !displaySyscallNames) {
+    setDisplaySyscallNames(true);
+  }
 
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR<WinDiffIndexData>(
@@ -124,12 +142,45 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     return <></>;
   })();
 
+  const syscallOptionsMenu: JSX.Element = (() => {
+    if (currentTabId == Tab.Sycalls) {
+      const syscallOptions = [
+        {
+          name: "Order syscalls by name",
+          checked: orderSyscallsByName,
+          updateState: (checked: boolean) => setOrderSyscallsByName(checked),
+        },
+        {
+          name: "Display syscall IDs",
+          checked: displaySyscallIds,
+          updateState: (checked: boolean) => setDisplaySyscallIds(checked),
+        },
+        {
+          name: "Display syscall names",
+          checked: displaySyscallNames,
+          updateState: (checked: boolean) => setDisplaySyscallNames(checked),
+        },
+      ];
+      return (
+        <div>
+          <OptionsMenu options={syscallOptions} />
+        </div>
+      );
+    }
+    return <></>;
+  })();
+
   // Prepare the appropriate data
-  const compareStrings = (a: string, b: string) => (a > b ? 1 : b > a ? -1 : 0);
   const sortedOSes: string[] = indexData.oses
     .map((osVersion: any) => osVersionToHumanString(osVersion))
     .sort(compareStrings);
-  const sortedBinaries: string[] = indexData.binaries.sort(compareStrings);
+  let sortedBinaries: string[] = indexData.binaries.sort(compareStrings);
+  // Filter binary list if needed
+  if (currentTabId == Tab.Sycalls) {
+    sortedBinaries = sortedBinaries.filter((binary: string) => {
+      return supportedBinariesForSyscalls.indexOf(binary) > -1;
+    });
+  }
 
   // Data displayed on the left (in diff mode) or in the center (in browse mode)
   const leftData: string = (() => {
@@ -139,7 +190,10 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
       return getEditorDataFromFileData(
         leftFileData,
         currentTabId,
-        selectedType
+        selectedType,
+        orderSyscallsByName,
+        displaySyscallIds,
+        displaySyscallNames
       );
     }
   })();
@@ -151,7 +205,10 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
       return getEditorDataFromFileData(
         rightFileData,
         currentTabId,
-        selectedType
+        selectedType,
+        orderSyscallsByName,
+        displaySyscallIds,
+        displaySyscallNames
       );
     }
   })();
@@ -203,6 +260,8 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
           />
 
           {typesCombobox}
+
+          {syscallOptionsMenu}
         </div>
 
         {/* Text editor */}
@@ -251,7 +310,10 @@ function humanOsVersionToPathSuffix(osVersionName: string): string {
 function getEditorDataFromFileData(
   fileData: WinDiffFileData,
   tab: Tab,
-  selectedType: string | undefined
+  selectedType: string | undefined,
+  orderSyscallsByName: boolean,
+  displaySyscallIds: boolean,
+  displaySyscallNames: boolean
 ): string {
   switch (tab) {
     default:
@@ -265,6 +327,26 @@ function getEditorDataFromFileData(
       return Object.keys(fileData.types).join("\n");
     case Tab.Types:
       return selectedType ? fileData.types[selectedType] : "";
+    case Tab.Sycalls:
+      let syscalls = Object.entries(fileData.syscalls);
+      if (orderSyscallsByName) {
+        syscalls.sort((a, b) => compareStrings(a[1], b[1]));
+      }
+      return syscalls
+        .map((value) => {
+          if (displaySyscallIds && displaySyscallNames) {
+            return `0x${parseInt(value[0], 10)
+              .toString(16)
+              .padStart(4, "0")}: ${value[1]}`;
+          }
+          if (displaySyscallIds) {
+            return `0x${parseInt(value[0], 10).toString(16).padStart(4, "0")}`;
+          }
+          if (displaySyscallNames) {
+            return value[1];
+          }
+        })
+        .join("\n");
   }
 }
 
