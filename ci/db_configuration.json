@@ -1234,7 +1234,8 @@
                 "EXPORTS",
                 "DEBUG_SYMBOLS",
                 "MODULES",
-                "TYPES"
+                "TYPES",
+                "SYSCALLS"
             ]
         },
         "win32u.dll": {
@@ -1242,7 +1243,8 @@
                 "EXPORTS",
                 "DEBUG_SYMBOLS",
                 "MODULES",
-                "TYPES"
+                "TYPES",
+                "SYSCALLS"
             ]
         },
         "kernel32.dll": {
