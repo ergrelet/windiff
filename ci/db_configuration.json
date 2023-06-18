@@ -1162,7 +1162,8 @@
                 "EXPORTS",
                 "DEBUG_SYMBOLS",
                 "MODULES",
-                "TYPES"
+                "TYPES",
+                "SYSCALLS"
             ]
         },
         "win32k.sys": {
@@ -1170,7 +1171,8 @@
                 "EXPORTS",
                 "DEBUG_SYMBOLS",
                 "MODULES",
-                "TYPES"
+                "TYPES",
+                "SYSCALLS"
             ]
         },
         "win32kbase.sys": {
