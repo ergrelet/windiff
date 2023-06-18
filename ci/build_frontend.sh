@@ -3,7 +3,7 @@
 set -x
 set -e
 
-WINDIFF_CLI_URL=https://github.com/ergrelet/windiff/releases/download/v1.1.0/windiff_cli-x86_64-unknown-linux-musl
+WINDIFF_CLI_URL=https://github.com/ergrelet/windiff/releases/download/v1.2.0/windiff_cli-x86_64-unknown-linux-musl
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 # Download a pre-built version of `windiff_cli`
