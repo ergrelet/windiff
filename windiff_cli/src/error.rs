@@ -35,6 +35,14 @@ pub enum WinDiffError {
     UnsupportedExecutableFormat,
     #[error("unsupported architecture given")]
     UnsupportedArchitecture,
+    #[error("missing optional header in PE")]
+    MissingExecutableOptionalHeader,
+    #[error("missing export info for PE: {0}")]
+    MissingExecutableExportInfo(String),
     #[error("missing debug info for PE: {0}")]
     MissingExecutableDebugInfo(String),
+    #[error("failed to find service table")]
+    SystemServiceTableNotFoundError,
+    #[error("failed to parse service table")]
+    SystemServiceTableParsingError,
 }

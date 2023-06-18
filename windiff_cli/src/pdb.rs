@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -26,14 +26,14 @@ impl<'p> Pdb<'p> {
         Ok(Self { file_path, pdb })
     }
 
-    pub fn extract_symbols(&mut self) -> Result<BTreeSet<String>> {
+    pub fn extract_symbols(&mut self, differentiate_functions: bool) -> Result<BTreeSet<String>> {
         log::trace!("Extracting symbols from {:?}", self.file_path);
 
         let mut symbols = BTreeSet::new();
 
         // Global symbols
         let symbol_table = self.pdb.global_symbols()?;
-        symbols.append(&mut walk_symbols(symbol_table.iter())?);
+        symbols.append(&mut self.walk_symbols(symbol_table.iter(), differentiate_functions)?);
 
         // Modules' private symbols
         let dbi = self.pdb.debug_information()?;
@@ -46,7 +46,40 @@ impl<'p> Pdb<'p> {
                 }
             };
 
-            symbols.append(&mut walk_symbols(info.symbols()?)?);
+            symbols.append(&mut self.walk_symbols(info.symbols()?, differentiate_functions)?);
+        }
+
+        Ok(symbols)
+    }
+
+    pub fn extract_symbols_with_offset(
+        &mut self,
+        differentiate_functions: bool,
+    ) -> Result<BTreeMap<u32, String>> {
+        log::trace!("Extracting symbols from {:?}", self.file_path);
+
+        let mut symbols = BTreeMap::new();
+
+        // Global symbols
+        let symbol_table = self.pdb.global_symbols()?;
+        symbols.append(
+            &mut self.walk_symbols_with_offsets(symbol_table.iter(), differentiate_functions)?,
+        );
+
+        // Modules' private symbols
+        let dbi = self.pdb.debug_information()?;
+        let mut modules = dbi.modules()?;
+        while let Some(module) = modules.next()? {
+            let info = match self.pdb.module_info(&module)? {
+                Some(info) => info,
+                None => {
+                    continue;
+                }
+            };
+
+            symbols.append(
+                &mut self.walk_symbols_with_offsets(info.symbols()?, differentiate_functions)?,
+            );
         }
 
         Ok(symbols)
@@ -65,6 +98,82 @@ impl<'p> Pdb<'p> {
         }
 
         Ok(result)
+    }
+
+    fn walk_symbols(
+        &mut self,
+        mut symbols: pdb::SymbolIter<'_>,
+        differentiate_functions: bool,
+    ) -> Result<BTreeSet<String>> {
+        let mut result = BTreeSet::new();
+        while let Some(symbol) = symbols.next()? {
+            if let Ok(value) = self.dump_symbol(&symbol, differentiate_functions) {
+                result.insert(value.1);
+            }
+        }
+
+        Ok(result)
+    }
+
+    fn walk_symbols_with_offsets(
+        &mut self,
+        mut symbols: pdb::SymbolIter<'_>,
+        differentiate_functions: bool,
+    ) -> Result<BTreeMap<u32, String>> {
+        let mut result = BTreeMap::new();
+        while let Some(symbol) = symbols.next()? {
+            if let Ok(value) = self.dump_symbol(&symbol, differentiate_functions) {
+                result.insert(value.0, value.1);
+            }
+        }
+
+        Ok(result)
+    }
+
+    fn dump_symbol(
+        &mut self,
+        symbol: &pdb::Symbol<'_>,
+        differentiate_functions: bool,
+    ) -> Result<(u32, String)> {
+        let addr_map = self.pdb.address_map()?;
+        match symbol.parse()? {
+            // Public symbols?
+            pdb::SymbolData::Public(data) => Ok(if data.function {
+                (
+                    data.offset.to_rva(&addr_map).unwrap_or_default().0,
+                    // Add parenthese to distinguish functions from global variables
+                    if differentiate_functions {
+                        format!("{}()", data.name)
+                    } else {
+                        data.name.to_string().to_string()
+                    },
+                )
+            } else {
+                (
+                    data.offset.to_rva(&addr_map).unwrap_or_default().0,
+                    data.name.to_string().to_string(),
+                )
+            }),
+            // Global variables
+            pdb::SymbolData::Data(data) => Ok((
+                data.offset.to_rva(&addr_map).unwrap_or_default().0,
+                data.name.to_string().to_string(),
+            )),
+            // Functions and methods
+            pdb::SymbolData::Procedure(data) => Ok((
+                data.offset.to_rva(&addr_map).unwrap_or_default().0,
+                // Add parenthese to distinguish functions from global variables
+                if differentiate_functions {
+                    format!("{}()", data.name)
+                } else {
+                    data.name.to_string().to_string()
+                },
+            )),
+            _ => {
+                // ignore everything else
+                Err(WinDiffError::UnsupportedExecutableFormat)
+            }
+        }
     }
 }
 
@@ -162,34 +271,4 @@ async fn download_file(url: reqwest::Url, output_file_path: &Path) -> Result<()>
     }
 
     Ok(())
-}
-
-fn walk_symbols(mut symbols: pdb::SymbolIter<'_>) -> Result<BTreeSet<String>> {
-    let mut result = BTreeSet::new();
-    while let Some(symbol) = symbols.next()? {
-        if let Ok(value) = dump_symbol(&symbol) {
-            result.insert(value);
-        }
-    }
-
-    Ok(result)
-}
-
-fn dump_symbol(symbol: &pdb::Symbol<'_>) -> Result<String> {
-    match symbol.parse()? {
-        // Public symbols?
-        pdb::SymbolData::Public(data) => Ok(if data.function {
-            format!("{}()", data.name)
-        } else {
-            data.name.to_string().to_string()
-        }),
-        // Global variables
-        pdb::SymbolData::Data(data) => Ok(data.name.to_string().to_string()),
-        // Functions and methods
-        pdb::SymbolData::Procedure(data) => Ok(format!("{}()", data.name)),
-        _ => {
-            // ignore everything else
-            Err(WinDiffError::UnsupportedExecutableFormat)
-        }
-    }
 }

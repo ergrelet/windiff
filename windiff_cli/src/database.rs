@@ -190,7 +190,7 @@ async fn generate_database_for_pe(
     if let Some(mut pdb) = pdb {
         // Extract debug symbols
         if extracted_information.contains(BinaryExtractedInformationFlags::DebugSymbols) {
-            database.symbols = pdb.extract_symbols()?;
+            database.symbols = pdb.extract_symbols(true)?;
         }
         // Extract compiled modules
         if extracted_information.contains(BinaryExtractedInformationFlags::Modules) {
@@ -205,7 +205,9 @@ async fn generate_database_for_pe(
         }
         // Extract syscalls
         if extracted_information.contains(BinaryExtractedInformationFlags::Syscalls) {
-            database.syscalls = extract_syscalls(pe, pe_data)?.into_iter().collect();
+            database.syscalls = extract_syscalls(pe, pe_data, &mut pdb)?
+                .into_iter()
+                .collect();
         }
     }
 

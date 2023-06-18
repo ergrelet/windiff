@@ -48,7 +48,12 @@ const tabNames: string[] = [
 ];
 
 // List of binaries we support syscall extraction for
-const supportedBinariesForSyscalls: string[] = ["ntdll.dll", "win32u.dll"];
+const supportedBinariesForSyscalls: string[] = [
+  "ntdll.dll",
+  "win32u.dll",
+  "ntoskrnl.exe",
+  "win32k.sys",
+];
 
 export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   // Tab selection
