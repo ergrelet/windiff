@@ -29,7 +29,7 @@ impl<'p> Pdb<'p> {
     pub fn extract_symbols(&mut self, differentiate_functions: bool) -> Result<BTreeSet<String>> {
         log::trace!("Extracting symbols from {:?}", self.file_path);
 
-        let mut symbols = BTreeSet::new();
+        let mut symbols = Vec::new();
 
         // Global symbols
         let symbol_table = self.pdb.global_symbols()?;
@@ -49,7 +49,7 @@ impl<'p> Pdb<'p> {
             symbols.append(&mut self.walk_symbols(info.symbols()?, differentiate_functions)?);
         }
 
-        Ok(symbols)
+        Ok(symbols.into_iter().collect())
     }
 
     pub fn extract_symbols_with_offset(
@@ -58,7 +58,7 @@ impl<'p> Pdb<'p> {
     ) -> Result<BTreeMap<u32, String>> {
         log::trace!("Extracting symbols from {:?}", self.file_path);
 
-        let mut symbols = BTreeMap::new();
+        let mut symbols = Vec::new();
 
         // Global symbols
         let symbol_table = self.pdb.global_symbols()?;
@@ -82,7 +82,7 @@ impl<'p> Pdb<'p> {
             );
         }
 
-        Ok(symbols)
+        Ok(symbols.into_iter().collect())
     }
 
     pub fn extract_modules(&mut self) -> Result<BTreeSet<String>> {
@@ -104,11 +104,11 @@ impl<'p> Pdb<'p> {
         &mut self,
         mut symbols: pdb::SymbolIter<'_>,
         differentiate_functions: bool,
-    ) -> Result<BTreeSet<String>> {
-        let mut result = BTreeSet::new();
+    ) -> Result<Vec<String>> {
+        let mut result = Vec::new();
         while let Some(symbol) = symbols.next()? {
             if let Ok(value) = self.dump_symbol(&symbol, differentiate_functions) {
-                result.insert(value.1);
+                result.push(value.1);
             }
         }
 
@@ -119,11 +119,11 @@ impl<'p> Pdb<'p> {
         &mut self,
         mut symbols: pdb::SymbolIter<'_>,
         differentiate_functions: bool,
-    ) -> Result<BTreeMap<u32, String>> {
-        let mut result = BTreeMap::new();
+    ) -> Result<Vec<(u32, String)>> {
+        let mut result = Vec::new();
         while let Some(symbol) = symbols.next()? {
             if let Ok(value) = self.dump_symbol(&symbol, differentiate_functions) {
-                result.insert(value.0, value.1);
+                result.push((value.0, value.1));
             }
         }
 
