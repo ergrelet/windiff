@@ -69,13 +69,14 @@ async fn download_pe_versions(
             output_directory,
         )
         .await;
-        if download_result.is_err() {
+        if let Err(err) = &download_result {
             log::warn!(
-                "Failed to download PE '{}' (version '{}-{}-{}')",
+                "Failed to download PE '{}' (version '{}-{}-{}'): {}",
                 binary_name,
                 &os_desc.version,
                 &os_desc.update,
                 os_desc.architecture.to_str(),
+                err,
             );
         }
 
@@ -111,17 +112,19 @@ async fn download_single_pdb(
     pe_version: DownloadedPEVersion,
     output_directory: &Path,
 ) -> Result<(DownloadedPEVersion, Option<PathBuf>)> {
-    let pdb_path_opt =
-        if let Ok(pdb_path) = pdb::download_pdb_for_pe(&pe_version.path, output_directory).await {
-            Some(pdb_path)
-        } else {
-            log::warn!(
-                "Failed to download PDB for PE '{}', version {}-{}",
-                pe_version.original_name,
-                pe_version.os_version,
-                pe_version.os_update
-            );
-            None
+    let pdb_path_opt: Option<PathBuf> =
+        match pdb::download_pdb_for_pe(&pe_version.path, output_directory).await {
+            Ok(pdb_path) => Some(pdb_path),
+            Err(err) => {
+                log::warn!(
+                    "Failed to download PDB for PE '{}' (version '{}-{}'): {}",
+                    pe_version.original_name,
+                    pe_version.os_version,
+                    pe_version.os_update,
+                    err
+                );
+                None
+            }
         };
 
     Ok((pe_version, pdb_path_opt))
