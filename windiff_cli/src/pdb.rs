@@ -108,7 +108,7 @@ impl<'p> Pdb<'p> {
         let mut result = Vec::new();
         while let Some(symbol) = symbols.next()? {
             if let Ok(value) = self.dump_symbol(&symbol, differentiate_functions) {
-                result.push(value.1);
+                result.push(value);
             }
         }
 
@@ -122,8 +122,8 @@ impl<'p> Pdb<'p> {
     ) -> Result<Vec<(u32, String)>> {
         let mut result = Vec::new();
         while let Some(symbol) = symbols.next()? {
-            if let Ok(value) = self.dump_symbol(&symbol, differentiate_functions) {
-                result.push((value.0, value.1));
+            if let Ok(value) = self.dump_symbol_with_offsets(&symbol, differentiate_functions) {
+                result.push(value);
             }
         }
 
@@ -131,6 +131,41 @@ impl<'p> Pdb<'p> {
     }
 
     fn dump_symbol(
+        &mut self,
+        symbol: &pdb::Symbol<'_>,
+        differentiate_functions: bool,
+    ) -> Result<String> {
+        match symbol.parse()? {
+            // Public symbols?
+            pdb::SymbolData::Public(data) => Ok(if data.function {
+                // Add parenthese to distinguish functions from global variables
+                if differentiate_functions {
+                    format!("{}()", data.name)
+                } else {
+                    data.name.to_string().to_string()
+                }
+            } else {
+                data.name.to_string().to_string()
+            }),
+            // Global variables
+            pdb::SymbolData::Data(data) => Ok(data.name.to_string().to_string()),
+            // Functions and methods
+            pdb::SymbolData::Procedure(data) => Ok(
+                // Add parenthese to distinguish functions from global variables
+                if differentiate_functions {
+                    format!("{}()", data.name)
+                } else {
+                    data.name.to_string().to_string()
+                },
+            ),
+            _ => {
+                // ignore everything else
+                Err(WinDiffError::UnsupportedExecutableFormat)
+            }
+        }
+    }
+
+    fn dump_symbol_with_offsets(
         &mut self,
         symbol: &pdb::Symbol<'_>,
         differentiate_functions: bool,
