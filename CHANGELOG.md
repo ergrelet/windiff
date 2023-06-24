@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2023-06-24
+
+### Added
+
+- Command-line option to configure concurrent downloads in `windiff_cli`
+
+### Fixed
+
+- Improve symbol extraction efficiency
+
 ## [1.2.0] - 2023-06-18
 
 ### Added
