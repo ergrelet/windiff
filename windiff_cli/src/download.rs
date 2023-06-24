@@ -12,18 +12,22 @@ use crate::{
 pub async fn download_all_binaries(
     cfg: &WinDiffConfiguration,
     output_directory: &Path,
+    concurrent_downloads: usize,
 ) -> Result<Vec<DownloadedPEVersion>> {
-    // Note(ergrelet): arbitrarily defined value
-    const CONCURRENT_PE_DOWNLOADS: usize = 16;
-
     // Fetch all binaries concurrently and fold results into a single `Vec`
     let result: Vec<DownloadedPEVersion> =
         futures::stream::iter(cfg.binaries.keys().map(|binary_name| async move {
             log::trace!("Fetching '{}' binaries ...", binary_name);
 
-            download_single_binary(binary_name, &cfg.oses, output_directory).await
+            download_single_binary(
+                binary_name,
+                &cfg.oses,
+                output_directory,
+                concurrent_downloads,
+            )
+            .await
         }))
-        .buffer_unordered(CONCURRENT_PE_DOWNLOADS)
+        .buffer_unordered(concurrent_downloads)
         .collect::<Vec<Result<Vec<DownloadedPEVersion>>>>()
         .await
         .into_iter()
@@ -42,12 +46,20 @@ pub async fn download_single_binary(
     binary_name: &str,
     os_descriptions: &[OSDescription],
     output_directory: &Path,
+    concurrent_downloads: usize,
 ) -> Result<Vec<DownloadedPEVersion>> {
     // Retrieve the index file for that PE file
     let pe_index = winbindex::get_remote_index_for_pe(binary_name).await?;
 
     // Download all requested versions of this PE file
-    Ok(download_pe_versions(os_descriptions, &pe_index, binary_name, output_directory).await)
+    Ok(download_pe_versions(
+        os_descriptions,
+        &pe_index,
+        binary_name,
+        output_directory,
+        concurrent_downloads,
+    )
+    .await)
 }
 
 async fn download_pe_versions(
@@ -55,9 +67,8 @@ async fn download_pe_versions(
     pe_index: &serde_json::Value,
     binary_name: &str,
     output_directory: &Path,
+    concurrent_downloads: usize,
 ) -> Vec<DownloadedPEVersion> {
-    const CONCURRENT_PE_DOWNLOADS: usize = 16;
-
     // Download all requested versions concurrently
     futures::stream::iter(os_descriptions.iter().map(|os_desc| async {
         let download_result = winbindex::download_pe_version(
@@ -82,7 +93,7 @@ async fn download_pe_versions(
 
         download_result
     }))
-    .buffer_unordered(CONCURRENT_PE_DOWNLOADS)
+    .buffer_unordered(concurrent_downloads)
     // Ignore errors and simply skip the corresponding files
     .filter_map(|result| async { result.ok() })
     .collect()
@@ -92,16 +103,15 @@ async fn download_pe_versions(
 pub async fn download_all_pdbs(
     downloaded_pes: Vec<DownloadedPEVersion>,
     output_directory: &Path,
+    concurrent_downloads: usize,
 ) -> Vec<(DownloadedPEVersion, Option<PathBuf>)> {
-    const CONCURRENT_PDB_DOWNLOADS: usize = 16;
-
     // Download all requested versions concurrently
     futures::stream::iter(
         downloaded_pes.into_iter().map(|pe_version| async move {
             download_single_pdb(pe_version, output_directory).await
         }),
     )
-    .buffer_unordered(CONCURRENT_PDB_DOWNLOADS)
+    .buffer_unordered(concurrent_downloads)
     // Ignore errors and simply skip the corresponding files
     .filter_map(|result: Result<(DownloadedPEVersion, Option<PathBuf>)>| async { result.ok() })
     .collect()

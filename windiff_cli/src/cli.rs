@@ -12,8 +12,11 @@ pub struct WinDiffOpt {
     /// Path to the output directory that'll contain the generated files.
     #[structopt(default_value = "", parse(from_os_str))]
     pub output_directory: PathBuf,
-    #[structopt(short, long)]
     /// Enable "low storage" mode. This might be needed if you run the tool in
     /// a constrained environment (e.g., a CI runner)
+    #[structopt(short, long)]
     pub low_storage_mode: bool,
+    /// Number of concurrent downloads to perform while downloading files. Defaults to 64.
+    #[structopt(short, long, default_value = "64")]
+    pub concurrent_downloads: usize,
 }

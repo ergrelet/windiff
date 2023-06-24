@@ -50,8 +50,15 @@ async fn low_storage_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<
         let tmp_directory_path = tmp_directory.path();
 
         log::info!("Downloading binaries for '{}' ...", pe_name);
-        let downloaded_pes = download_single_binary(pe_name, &cfg.oses, tmp_directory_path).await?;
-        let mut downloaded_binaries = download_all_pdbs(downloaded_pes, tmp_directory_path).await;
+        let downloaded_pes = download_single_binary(
+            pe_name,
+            &cfg.oses,
+            tmp_directory_path,
+            opt.concurrent_downloads,
+        )
+        .await?;
+        let mut downloaded_binaries =
+            download_all_pdbs(downloaded_pes, tmp_directory_path, opt.concurrent_downloads).await;
         // Extract information from PEs and generate databases for all versions
         log::info!("Generating databases for '{}' ...", pe_name);
         generate_databases(&cfg, &downloaded_binaries, false, &opt.output_directory).await?;
@@ -76,12 +83,14 @@ async fn normal_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<()> {
 
     // Download requested PEs
     log::info!("Downloading PEs...");
-    let downloaded_pes = download_all_binaries(&cfg, tmp_directory_path).await?;
+    let downloaded_pes =
+        download_all_binaries(&cfg, tmp_directory_path, opt.concurrent_downloads).await?;
     log::trace!("PEs downloaded!");
 
     // Download PDBs
     log::info!("Downloading PDBs...");
-    let downloaded_binaries = download_all_pdbs(downloaded_pes, tmp_directory_path).await;
+    let downloaded_binaries =
+        download_all_pdbs(downloaded_pes, tmp_directory_path, opt.concurrent_downloads).await;
     log::trace!("PDBs downloaded!");
 
     // Extract information from PEs
