@@ -37,6 +37,7 @@ pub struct DatabaseIndex {
 pub struct OSVersion {
     pub version: String,
     pub update: String,
+    pub build_number: String,
     pub architecture: String,
 }
 
@@ -236,6 +237,7 @@ pub async fn generate_database_index(
             .map(|(pe_version, _)| OSVersion {
                 version: pe_version.os_version.clone(),
                 update: pe_version.os_update.clone(),
+                build_number: pe_version.os_build_number.clone(),
                 architecture: pe_version.architecture.to_str().to_string(),
             })
             .collect(),

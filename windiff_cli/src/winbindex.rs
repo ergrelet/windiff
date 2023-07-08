@@ -17,6 +17,7 @@ const WINBINDEX_BY_FILENAME_ARM64_BASE_URL: &str =
 const WINBINDEX_BY_FILENAME_INSIDER_BASE_URL: &str =
     "https://m417z.com/winbindex-data-insider/by_filename_compressed/";
 const MSDL_FILE_DOWNLOAD_BASE_URL: &str = "https://msdl.microsoft.com/download/symbols/";
+const WIN11_INSIDER_VERSION_NAME: &str = "11-Insider";
 
 #[derive(Debug)]
 pub struct DownloadedPEVersion {
@@ -24,6 +25,7 @@ pub struct DownloadedPEVersion {
     pub original_name: String,
     pub os_version: String,
     pub os_update: String,
+    pub os_build_number: String,
     pub architecture: OSArchitecture,
     pub pe_version: String,
 }
@@ -107,7 +109,8 @@ pub async fn download_pe_version(
         os_architecture.to_str()
     );
 
-    let pe_info = get_pe_info_from_index(pe_index, os_version, os_update, os_architecture)?;
+    let (pe_info, os_build_number) =
+        get_pe_info_and_build_number_from_index(pe_index, os_version, os_update, os_architecture)?;
     let pe_download_url = generate_file_download_url(pe_name, &pe_info)?;
     log::debug!(
         "Found download URL for version '{}-{}-{}': {}",
@@ -137,6 +140,7 @@ pub async fn download_pe_version(
         original_name: pe_name.to_string(),
         os_version: os_version.to_string(),
         os_update: os_update.to_string(),
+        os_build_number,
         architecture: *os_architecture,
         pe_version: pe_info.version.unwrap_or_default(),
     })
@@ -206,19 +210,22 @@ async fn parse_compressed_index_file(data: &[u8]) -> Result<serde_json::Value> {
     Ok(serde_json::from_slice(&decompressed_index_file)?)
 }
 
-fn get_pe_info_from_index(
+fn get_pe_info_and_build_number_from_index(
     json_index: &serde_json::Value,
     os_version: &str,
     os_update: &str,
     os_architecture: &OSArchitecture,
-) -> Result<FileInformation> {
+) -> Result<(FileInformation, String)> {
     if let Some(file_map) = json_index.as_object() {
         for file_object in file_map.values() {
             if let Ok(file_object) = serde_json::from_value::<FileObject>(file_object.clone()) {
                 if is_file_architecture_correct(&file_object, os_architecture)
                     && is_file_version_correct(&file_object, os_version, os_update)
                 {
-                    return Ok(file_object.file_info);
+                    let build_number = get_build_number(&file_object, os_version, os_update)
+                        .unwrap_or_default()
+                        .to_string();
+                    return Ok((file_object.file_info, build_number));
                 }
             }
         }
@@ -236,8 +243,7 @@ fn is_file_architecture_correct(
 
 fn is_file_version_correct(file_object: &FileObject, os_version: &str, os_update: &str) -> bool {
     // Handle insider versions differently as they're not indexed like regular versions/updates
-    const WIN11_INSIDER_VERSION: &str = "11-Insider";
-    if os_version == WIN11_INSIDER_VERSION {
+    if os_version == WIN11_INSIDER_VERSION_NAME {
         if let Some(version_info) = file_object.windows_versions.get("builds") {
             if version_info.get(os_update).is_some() {
                 // Found OS update
@@ -257,4 +263,29 @@ fn is_file_version_correct(file_object: &FileObject, os_version: &str, os_update
     }
 
     false
+}
+
+fn get_build_number<'f>(
+    file_object: &'f FileObject,
+    os_version: &str,
+    os_update: &str,
+) -> Option<&'f str> {
+    // Handle insider versions differently as they're not indexed like regular versions/updates
+    if os_version == WIN11_INSIDER_VERSION_NAME {
+        file_object
+            .windows_versions
+            .get("builds")?
+            .get(os_update)?
+            .get("updateInfo")?
+            .get("build")?
+            .as_str()
+    } else {
+        file_object
+            .windows_versions
+            .get(os_version)?
+            .get(os_update)?
+            .get("updateInfo")?
+            .get("releaseVersion")?
+            .as_str()
+    }
 }
