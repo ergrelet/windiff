@@ -14,6 +14,8 @@ const WINBINDEX_BY_FILENAME_AMD64_BASE_URL: &str =
     "https://winbindex.m417z.com/data/by_filename_compressed/";
 const WINBINDEX_BY_FILENAME_ARM64_BASE_URL: &str =
     "https://m417z.com/winbindex-data-arm64/by_filename_compressed/";
+const WINBINDEX_BY_FILENAME_INSIDER_BASE_URL: &str =
+    "https://m417z.com/winbindex-data-insider/by_filename_compressed/";
 const MSDL_FILE_DOWNLOAD_BASE_URL: &str = "https://msdl.microsoft.com/download/symbols/";
 
 #[derive(Debug)]
@@ -29,9 +31,12 @@ pub struct DownloadedPEVersion {
 pub async fn get_remote_index_for_pe(pe_name: &str) -> Result<serde_json::Value> {
     let index_file_amd64_url = generate_index_file_url(pe_name, OSArchitecture::Amd64)?;
     let index_file_arm64_url = generate_index_file_url(pe_name, OSArchitecture::Arm64)?;
+    let index_file_insider_url = generate_index_file_insider_url(pe_name)?;
 
     let mut multiarch_index = serde_json::Value::default();
+
     // Get compressed index files
+    // Fetch amd64 index
     if let Ok(compressed_index_file_amd64) = download_file(index_file_amd64_url).await {
         // Decompress and parse the index file
         let amd64_index = parse_compressed_index_file(&compressed_index_file_amd64[..]).await?;
@@ -41,6 +46,7 @@ pub async fn get_remote_index_for_pe(pe_name: &str) -> Result<serde_json::Value>
         log::warn!("No index found for PE '{}' (amd64)", pe_name);
     }
 
+    // Fetch arm64 index
     if let Ok(compressed_index_file_arm64) = download_file(index_file_arm64_url).await {
         // Decompress and parse the index file
         let arm64_index = parse_compressed_index_file(&compressed_index_file_arm64[..]).await?;
@@ -48,6 +54,16 @@ pub async fn get_remote_index_for_pe(pe_name: &str) -> Result<serde_json::Value>
         merge_json_values(&mut multiarch_index, &arm64_index);
     } else {
         log::warn!("No index found for PE '{}' (arm64)", pe_name);
+    }
+
+    // Fetch insider index
+    if let Ok(compressed_index_file_insider) = download_file(index_file_insider_url).await {
+        // Decompress and parse the index file
+        let insider_index = parse_compressed_index_file(&compressed_index_file_insider[..]).await?;
+        // Merge indexes into one
+        merge_json_values(&mut multiarch_index, &insider_index);
+    } else {
+        log::warn!("No index found for PE '{}' (insider)", pe_name);
     }
 
     Ok(multiarch_index)
@@ -144,12 +160,13 @@ struct FileInformation {
 }
 
 fn generate_index_file_url(pe_name: &str, architecture: OSArchitecture) -> Result<reqwest::Url> {
-    // Note(ergrelet): static strs that we control, unwrap shouldn't fail
     let base_url = match architecture {
         OSArchitecture::Amd64 | OSArchitecture::Wow64 => {
+            // Note(ergrelet): static str that we control, unwrap shouldn't fail
             reqwest::Url::from_str(WINBINDEX_BY_FILENAME_AMD64_BASE_URL).unwrap()
         }
         OSArchitecture::Arm64 => {
+            // Note(ergrelet): static str that we control, unwrap shouldn't fail
             reqwest::Url::from_str(WINBINDEX_BY_FILENAME_ARM64_BASE_URL).unwrap()
         }
         _ => {
@@ -157,6 +174,13 @@ fn generate_index_file_url(pe_name: &str, architecture: OSArchitecture) -> Resul
         }
     };
 
+    Ok(base_url.join(format!("{}.json.gz", pe_name).as_str())?)
+}
+
+// Note(ergrelet): there is a dedicated repo for insider updates, which contains all architectures
+fn generate_index_file_insider_url(pe_name: &str) -> Result<reqwest::Url> {
+    // Note(ergrelet): static str that we control, unwrap shouldn't fail
+    let base_url = reqwest::Url::from_str(WINBINDEX_BY_FILENAME_INSIDER_BASE_URL).unwrap();
     Ok(base_url.join(format!("{}.json.gz", pe_name).as_str())?)
 }
 
@@ -211,6 +235,19 @@ fn is_file_architecture_correct(
 }
 
 fn is_file_version_correct(file_object: &FileObject, os_version: &str, os_update: &str) -> bool {
+    // Handle insider versions differently as they're not indexed like regular versions/updates
+    const WIN11_INSIDER_VERSION: &str = "11-Insider";
+    if os_version == WIN11_INSIDER_VERSION {
+        if let Some(version_info) = file_object.windows_versions.get("builds") {
+            if version_info.get(os_update).is_some() {
+                // Found OS update
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Handle regular updates
     if let Some(version_info) = file_object.windows_versions.get(os_version) {
         // Found the OS version
         if version_info.get(os_update).is_some() {
