@@ -9,6 +9,7 @@ import dateparser
 
 WINBINDEX_UPDATES_AMD64_URL = "https://winbindex.m417z.com/data/updates_last.json"
 WINBINDEX_UPDATES_ARM64_URL = "https://m417z.com/winbindex-data-arm64/updates_last.json"
+WINBINDEX_UPDATES_INSIDER_URL = "https://m417z.com/winbindex-data-insider/updates_last.json"
 
 # Winbindex
 WinbindexOSUpdates = Dict[str, Any]
@@ -63,12 +64,16 @@ def get_winbindex_available_os_versions(
     """
     updates_json_amd64 = requests.get(WINBINDEX_UPDATES_AMD64_URL).json()
     updates_json_arm64 = requests.get(WINBINDEX_UPDATES_ARM64_URL).json()
+    updates_json_insider = requests.get(WINBINDEX_UPDATES_INSIDER_URL).json()
 
     updates_amd64 = extract_winbindex_os_versions(updates_json_amd64, "amd64",
                                                   base_only, kb_date_limit)
     updates_arm64 = extract_winbindex_os_versions(updates_json_arm64, "arm64",
                                                   base_only, kb_date_limit)
-    return updates_amd64.union(updates_arm64)
+    updates_insider = extract_winbindex_os_insider_versions(
+        updates_json_insider, ["amd64", "arm64"], kb_date_limit)
+
+    return updates_amd64.union(updates_arm64).union(updates_insider)
 
 
 def extract_winbindex_os_versions(
@@ -92,9 +97,38 @@ def extract_winbindex_os_versions(
             if kb_date_limit:
                 release_date = dateparser.parse(os_update_info["releaseDate"])
                 if release_date is not None and release_date < kb_date_limit:
-                    # Release it too old, ignore
+                    # Release is too old, ignore
                     continue
             result.add((os_version_name, os_update_id, architecture))
+
+    return result
+
+
+def extract_winbindex_os_insider_versions(
+        os_versions: WinbindexOSVersions,
+        architectures: List[str],
+        date_limit: Optional[datetime] = None) -> Set[Tuple[str, str, str]]:
+    """
+    Parse Winbindex's insider 'updates.json' files and return the set of insider
+    updates for Windows 11.
+    """
+    result: Set[Tuple[str, str, str]] = set()
+
+    insider_builds = os_versions["builds"]
+    for build_guid, build_info in insider_builds.items():
+        if date_limit:
+            release_date = datetime.fromtimestamp(build_info["created"])
+            if release_date is not None and release_date < date_limit:
+                # Release is too old, ignore
+                continue
+
+        build_arch = build_info["arch"]
+        # Note(ergrelet): only keep Windows 11 Insider previews for now
+        if build_arch in architectures and \
+           build_info["title"].startswith("Windows 11 Insider Preview"):
+            # Note(ergrelet): "11-Insider" is the OS name used by `windiff_cli`
+            # to design Windows 11 insider preview builds
+            result.add(("11-Insider", build_guid, build_arch))
 
     return result
 
