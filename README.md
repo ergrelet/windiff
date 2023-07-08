@@ -3,9 +3,10 @@
 ## About
 
 WinDiff is an open-source web-based tool that allows browsing and comparing
-symbol and type information of Microsoft Windows binaries across different
-versions of the operating system. The binary database is automatically updated
-to include information from the latest Windows updates.
+symbol, type and syscall information of Microsoft Windows binaries across
+different versions of the operating system. The binary database is automatically
+updated to include information from the latest Windows updates (including
+Insider Preview).
 
 It was inspired by [ntdiff](https://github.com/ntdiff/ntdiff) and made possible
 with the help of [Winbindex](https://github.com/m417z/winbindex).
@@ -34,13 +35,14 @@ between versions. The frontend's code is in the `windiff_frontend` directory.
 A scheduled GitHub action fetches new updates from `Winbindex` every day and
 updates the configuration file used to generate the live version of WinDiff.
 Currently, because of (free plans) storage and compute limitations, **only KB**
-**updates less than one year old are kept** for the live version. You can of
-course rebuild a local version of WinDiff yourself, without those limitations if
-you need to. See the next section for that.
+**and Insider Preview updates less than one year old are kept** for the live
+version. You can of course rebuild a local version of WinDiff yourself, without
+those limitations if you need to. See the next section for that.
 
 Note: `Winbindex` doesn't provide unique download links for 100% of the indexed
 files, so it might happen that some PEs' information are unavailable in WinDiff
-because of that. However, as soon as these PEs are on VirusTotal, these will be
+because of that. However, as soon as these PEs are on VirusTotal, `Winbindex`
+will be able to provide unique download links for them and they will then be
 integrated into WinDiff automatically.
 
 ## How to Build

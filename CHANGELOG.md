@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Ability to fetch Insider Preview updates for Windows 11
+
 ## [1.2.1] - 2023-06-24
 
 ### Added
