@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2023-07-09
+
 ### Added
 
 - Ability to fetch Insider Preview updates for Windows 11
+
+### Changed
+
+- Show OS build numbers for OS updates (instead of the KB number for KB updates)
 
 ## [1.2.1] - 2023-06-24
 
