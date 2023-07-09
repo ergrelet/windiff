@@ -59,9 +59,9 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   // Tab selection
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
   // OS and binary selection
-  let [leftOSVersion, setLeftOSVersion] = useState("");
-  let [rightOSVersion, setRightOSVersion] = useState("");
-  let [binary, setBinary] = useState("");
+  let [selectedLeftOSVersionId, setSelectedLeftOSVersionId] = useState(0);
+  let [selectedRightOSVersionId, setSelectedRightOSVersionId] = useState(0);
+  let [selectedBinaryId, setSelectedBinaryId] = useState(0);
   // Type selection
   let [selectedType, setSelectedType] = useState("");
   // Syscall options
@@ -79,24 +79,50 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     compressedJsonFetcher
   );
 
+  let sortedOSNames: string[] = [];
+  let sortedBinaryNames: string[] = [];
   let leftFileName: string = "";
   let rightFileName: string = "";
+  let leftOSVersion: string = "";
+  let rightOSVersion: string = "";
+  let selectedBinaryName: string = "";
   if (indexData) {
-    if (leftOSVersion.length == 0) {
-      leftOSVersion = osVersionToHumanString(indexData.oses[0]);
-    }
-    if (rightOSVersion.length == 0) {
-      rightOSVersion = osVersionToHumanString(indexData.oses[0]);
-    }
-    if (binary.length == 0) {
-      binary = indexData.binaries[0];
+    // Prepare sorted lists for OS names and path suffixes used to fetch the
+    // corresponding binary versions
+    let sortedOSPathSuffixes: string[] = [];
+    [sortedOSNames, sortedOSPathSuffixes] = indexData.oses
+      .map((osVersion: WinDiffIndexOS) => [
+        osVersionToHumanString(osVersion),
+        osVersionToPathSuffix(osVersion),
+      ])
+      .sort((a: string[], b: string[]) => compareStrings(a[0], b[0]))
+      .reduce(
+        (accumulator: string[][], current: string[]) => {
+          accumulator[0].push(current[0]);
+          accumulator[1].push(current[1]);
+          return accumulator;
+        },
+        [[], []]
+      );
+
+    // Sort binary names
+    sortedBinaryNames = indexData.binaries.sort(compareStrings);
+    // Filter binary list if needed
+    if (currentTabId == Tab.Sycalls) {
+      sortedBinaryNames = sortedBinaryNames.filter((binary: string) => {
+        return supportedBinariesForSyscalls.indexOf(binary) > -1;
+      });
     }
 
-    const binaryVersion = humanOsVersionToPathSuffix(leftOSVersion);
-    leftFileName = `${binary}_${binaryVersion}.json.gz`;
+    leftOSVersion = sortedOSNames[selectedLeftOSVersionId];
+    rightOSVersion = sortedOSNames[selectedRightOSVersionId];
+    selectedBinaryName = sortedBinaryNames[selectedBinaryId];
+
+    const binaryVersion = sortedOSPathSuffixes[selectedLeftOSVersionId];
+    leftFileName = `${selectedBinaryName}_${binaryVersion}.json.gz`;
     if (mode == ExplorerMode.Diff) {
-      const binaryVersion = humanOsVersionToPathSuffix(rightOSVersion);
-      rightFileName = `${binary}_${binaryVersion}.json.gz`;
+      const binaryVersion = sortedOSPathSuffixes[selectedRightOSVersionId];
+      rightFileName = `${selectedBinaryName}_${binaryVersion}.json.gz`;
     }
   }
 
@@ -139,6 +165,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
           <DarkCombobox
             selectedOption={selectedType}
             options={[...typeList]}
+            idOnChange={false}
             onChange={(value) => setSelectedType(value)}
           />
         );
@@ -174,18 +201,6 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     }
     return <></>;
   })();
-
-  // Prepare the appropriate data
-  const sortedOSes: string[] = indexData.oses
-    .map((osVersion: any) => osVersionToHumanString(osVersion))
-    .sort(compareStrings);
-  let sortedBinaries: string[] = indexData.binaries.sort(compareStrings);
-  // Filter binary list if needed
-  if (currentTabId == Tab.Sycalls) {
-    sortedBinaries = sortedBinaries.filter((binary: string) => {
-      return supportedBinariesForSyscalls.indexOf(binary) > -1;
-    });
-  }
 
   // Data displayed on the left (in diff mode) or in the center (in browse mode)
   const leftData: string = (() => {
@@ -225,8 +240,9 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
       return (
         <DarkCombobox
           selectedOption={rightOSVersion}
-          options={sortedOSes}
-          onChange={(value) => setRightOSVersion(value)}
+          options={sortedOSNames}
+          idOnChange={true}
+          onChange={(value) => setSelectedRightOSVersionId(value)}
         />
       );
     }
@@ -252,16 +268,18 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
         <div className={comboboxGridClass}>
           <DarkCombobox
             selectedOption={leftOSVersion}
-            options={sortedOSes}
-            onChange={(value) => setLeftOSVersion(value)}
+            options={sortedOSNames}
+            idOnChange={true}
+            onChange={(value) => setSelectedLeftOSVersionId(value)}
           />
 
           {rightOSCombobox}
 
           <DarkCombobox
-            selectedOption={binary}
-            options={sortedBinaries}
-            onChange={(value) => setBinary(value)}
+            selectedOption={selectedBinaryName}
+            options={sortedBinaryNames}
+            idOnChange={true}
+            onChange={(value) => setSelectedBinaryId(value)}
           />
 
           {typesCombobox}
@@ -282,34 +300,32 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
 }
 
 function osVersionToHumanString(osVersion: WinDiffIndexOS): string {
-  // Normalize version names between Windows 10 and 11
-  let versionPrefix = "";
-  if (!osVersion.version.startsWith("11")) {
-    // Windows 10
-    versionPrefix = "10-";
+  const splitOSVersion = osVersion.version.split("-");
+
+  let windowsVersion: number = 0;
+  let featureUpdate: string = "";
+  // Windows 10
+  if (splitOSVersion.length == 1) {
+    windowsVersion = 10;
+    featureUpdate = splitOSVersion[0];
+  } else if (splitOSVersion.length == 2 && splitOSVersion[0] == "11") {
+    windowsVersion = 11;
+    featureUpdate = splitOSVersion[1];
   }
 
-  return `Windows ${versionPrefix}${osVersion.version} ${osVersion.architecture} (${osVersion.update})`;
+  let buildName = "";
+  if (osVersion.build_number.length == 0) {
+    // Note(ergrelet): happens for "BASE" versions
+    buildName = osVersion.update;
+  } else {
+    buildName = `Build ${osVersion.build_number}`;
+  }
+
+  return `Windows ${windowsVersion} ${featureUpdate} ${osVersion.architecture} (${buildName})`;
 }
 
-// Convert "human" versions of version strings to the corresponding file path suffixes
-function humanOsVersionToPathSuffix(osVersionName: string): string {
-  const versionParts = osVersionName.split(" ");
-  let osVersion = versionParts[1];
-  if (osVersion.startsWith("10-")) {
-    // Remove added prefix
-    osVersion = osVersion.substring(3);
-  }
-
-  const osArchitecture = versionParts[2];
-  const osUpdateWithParentheses = versionParts[3];
-  // Remove parentheses
-  const osUpdate = osUpdateWithParentheses.substring(
-    1,
-    osUpdateWithParentheses.length - 1
-  );
-
-  return `${osVersion}_${osUpdate}_${osArchitecture}`;
+function osVersionToPathSuffix(osVersion: WinDiffIndexOS): string {
+  return `${osVersion.version}_${osVersion.update}_${osVersion.architecture}`;
 }
 
 function getEditorDataFromFileData(

@@ -7,19 +7,24 @@ import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
 export default function DarkCombobox({
   selectedOption,
   options,
+  idOnChange,
   onChange,
 }: {
   selectedOption: string;
   options: string[];
+  idOnChange: boolean;
   onChange?(value: any): void;
 }): JSX.Element {
   const [query, setQuery] = useState("");
 
+  const indexedOptions = options.map((option, id) => {
+    return { id: id, value: option };
+  });
   const filteredOptions =
     query === ""
-      ? options
-      : options.filter((option) => {
-          return option.toLowerCase().includes(query.toLowerCase());
+      ? indexedOptions
+      : indexedOptions.filter((option) => {
+          return option.value.toLowerCase().includes(query.toLowerCase());
         });
 
   return (
@@ -53,9 +58,9 @@ export default function DarkCombobox({
                     active ? "bg-gray-900 text-gray-300" : "text-gray-50"
                   }`
                 }
-                value={option}
+                value={idOnChange ? option.id : option.value}
               >
-                {option}
+                {option.value}
               </Combobox.Option>
             ))}
           </Combobox.Options>

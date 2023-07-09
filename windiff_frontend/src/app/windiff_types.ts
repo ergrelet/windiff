@@ -6,6 +6,7 @@ export type WinDiffIndexData = {
 export type WinDiffIndexOS = {
   version: string;
   update: string;
+  build_number: string;
   architecture: string;
 };
 export type WinDiffIndexBinary = string;
