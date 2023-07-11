@@ -89,13 +89,18 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   if (indexData) {
     // Prepare sorted lists for OS names and path suffixes used to fetch the
     // corresponding binary versions
+    // Use a Collator for natural ordering
+    let collator = new Intl.Collator(undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
     let sortedOSPathSuffixes: string[] = [];
     [sortedOSNames, sortedOSPathSuffixes] = indexData.oses
       .map((osVersion: WinDiffIndexOS) => [
         osVersionToHumanString(osVersion),
         osVersionToPathSuffix(osVersion),
       ])
-      .sort((a: string[], b: string[]) => compareStrings(a[0], b[0]))
+      .sort((a: string[], b: string[]) => collator.compare(a[0], b[0]))
       .reduce(
         (accumulator: string[][], current: string[]) => {
           accumulator[0].push(current[0]);
