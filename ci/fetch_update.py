@@ -86,12 +86,21 @@ def extract_winbindex_os_versions(
     all Windows versions.
     """
     result: Set[Tuple[str, str, str]] = set()
+    
+    # Determine "BASE" versions as they aren't included
     for os_version_name, os_updates in os_versions.items():
-        # "BASE" versions aren't included
         result.add((os_version_name, "BASE", architecture))
-        if base_only:
-            continue
 
+        for os_update_id, os_update_info in os_updates.items():
+            other_windows_versions = os_update_info.get("otherWindowsVersions")
+            if other_windows_versions is not None:
+                for windows_version_name in other_windows_versions:
+                    result.add((windows_version_name, "BASE", architecture))
+
+    if base_only:
+        return result
+
+    for os_version_name, os_updates in os_versions.items():
         for os_update_id, os_update_info in os_updates.items():
             # Check release date if needed
             if kb_date_limit:
