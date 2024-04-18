@@ -78,8 +78,10 @@ impl WinDiffApp {
 
     fn load_pdb(&self, pdb_path: &Path) -> Result<()> {
         // Request the backend to load the PDB
-        self.backend
-            .send_command(BackendCommand::LoadPDB(PDB_SLOT, pdb_path.to_path_buf()))?;
+        self.backend.send_command(BackendCommand::LoadPDBFromPath(
+            PDB_SLOT,
+            pdb_path.to_path_buf(),
+        ))?;
 
         // Wait for the backend to finish loading the PDB
         if let FrontendCommand::LoadPDBResult(result) = self.frontend_controller.rx_ui.recv()? {
@@ -107,15 +109,16 @@ impl WinDiffApp {
     fn list_types(&self) -> Result<Vec<(String, TypeIndex)>> {
         // Queue a request for the backend to return the list of types that
         // match the given filter
-        self.backend.send_command(BackendCommand::UpdateTypeFilter(
+        self.backend.send_command(BackendCommand::ListTypes(
             PDB_SLOT,
             String::default(),
+            false,
             false,
             false,
         ))?;
 
         // Wait for the backend to finish filtering types
-        if let FrontendCommand::UpdateFilteredTypes(type_list) =
+        if let FrontendCommand::ListTypesResult(type_list) =
             self.frontend_controller.rx_ui.recv()?
         {
             Ok(type_list)
@@ -136,13 +139,16 @@ impl WinDiffApp {
                 false,
                 false,
                 false,
+                false,
             ))?;
 
         // Wait for the backend to finish reconstructing the type
         if let FrontendCommand::ReconstructTypeResult(result) =
             self.frontend_controller.rx_ui.recv()?
         {
-            Ok(result?)
+            let (reconstructed_type, _) = result?;
+
+            Ok(reconstructed_type)
         } else {
             Err(crate::error::WinDiffError::ResymBackendError(
                 "Invalid response received from the backend?".to_string(),

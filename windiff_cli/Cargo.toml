@@ -20,8 +20,8 @@ tempdir = "0.3"
 goblin = "0.6"
 enumflags2 = { version = "0.7", features = ["serde"] }
 hex = "0.4"
-pdb = { git = "https://github.com/ergrelet/pdb", branch = "0.8.0-resym" }
-resym_core = { git = "https://github.com/ergrelet/resym", rev = "b431fa3" }
+pdb = { git = "https://github.com/ergrelet/pdb", tag = "0.8.0-resym01" }
+resym_core = { git = "https://github.com/ergrelet/resym", tag = "v0.4.0" }
 crossbeam-channel = "0.5"
 log = "0.4"
 env_logger = "0.10"
