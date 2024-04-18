@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2024-04-19
+
+### Fixed
+
+- Properly extract BASE OS versions from 'otherWindowsVersions' fields
+
 ### Changed
 
 - Bump resym_core to version 0.4.0
