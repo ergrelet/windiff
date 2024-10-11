@@ -1,34 +1,9 @@
 {
     "oses": [
         {
-            "version": "11-Insider",
-            "update": "738ea25b-cbc3-4633-8e5f-7ce15a1ab826",
+            "version": "1607",
+            "update": "BASE",
             "architecture": "amd64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "9c9aaa4d-3424-4334-aa1c-86b82f95b7ba",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "d73a7f11-58e3-4274-ad8b-7003cee545b5",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "d991198d-989d-4440-8d7f-9eb3096120a7",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "ebe2f593-f542-40a1-bb75-e35a18c4c2bd",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "fb79fe84-1a55-428e-8216-2445573932d2",
-            "architecture": "arm64"
         },
         {
             "version": "11-Insider",
@@ -36,12 +11,17 @@
             "architecture": "amd64"
         },
         {
-            "version": "11-Insider",
-            "update": "8abd8c7c-5699-4604-a02c-dc7f5632e53d",
+            "version": "1709",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1809",
+            "update": "BASE",
             "architecture": "amd64"
         },
         {
-            "version": "1803",
+            "version": "11-22H2",
             "update": "BASE",
             "architecture": "arm64"
         },
@@ -52,27 +32,22 @@
         },
         {
             "version": "11-Insider",
-            "update": "6a853eea-c9ef-4a6c-81e3-4083fffe08f4",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1709",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "9f4161f9-a5cd-4616-8c16-a259e3909f46",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "f3d672c4-c473-4249-b3bb-5a0c1d418a23",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
             "update": "12d5c7af-8e10-49f2-a094-a1ee07d62ae3",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1507",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "20H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H1",
+            "update": "BASE",
             "architecture": "arm64"
         },
         {
@@ -82,13 +57,8 @@
         },
         {
             "version": "11-Insider",
-            "update": "e27f002d-e3b6-4f24-a4d8-8b09d279fe5b",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "49935233-dfee-4dee-8feb-9d6b5a4da325",
-            "architecture": "amd64"
+            "update": "9f4161f9-a5cd-4616-8c16-a259e3909f46",
+            "architecture": "arm64"
         },
         {
             "version": "11-Insider",
@@ -96,9 +66,149 @@
             "architecture": "amd64"
         },
         {
+            "version": "1703",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "2004",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "fb79fe84-1a55-428e-8216-2445573932d2",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1909",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1709",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "8abd8c7c-5699-4604-a02c-dc7f5632e53d",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "9c9aaa4d-3424-4334-aa1c-86b82f95b7ba",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "738ea25b-cbc3-4633-8e5f-7ce15a1ab826",
+            "architecture": "amd64"
+        },
+        {
             "version": "11-Insider",
             "update": "d0fe8e34-c34e-4565-9ec8-e2c8fca2f0dc",
             "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "d991198d-989d-4440-8d7f-9eb3096120a7",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5031445",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1903",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1803",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "6a853eea-c9ef-4a6c-81e3-4083fffe08f4",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "f3d672c4-c473-4249-b3bb-5a0c1d418a23",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1511",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1809",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "d73a7f11-58e3-4274-ad8b-7003cee545b5",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "ebe2f593-f542-40a1-bb75-e35a18c4c2bd",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1909",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "20H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "49935233-dfee-4dee-8feb-9d6b5a4da325",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1903",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "2004",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "e27f002d-e3b6-4f24-a4d8-8b09d279fe5b",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1803",
+            "update": "BASE",
+            "architecture": "amd64"
         }
     ],
     "binaries": {
