@@ -1,54 +1,29 @@
 {
     "oses": [
         {
-            "version": "22H2",
-            "update": "KB5037849",
-            "architecture": "amd64"
-        },
-        {
             "version": "21H2",
-            "update": "KB5037768",
+            "update": "KB5046613",
             "architecture": "arm64"
         },
         {
-            "version": "1507",
-            "update": "KB5035858",
-            "architecture": "amd64"
+            "version": "11-22H2",
+            "update": "KB5039302",
+            "architecture": "arm64"
         },
         {
-            "version": "1809",
-            "update": "KB5037425",
+            "version": "11-22H2",
+            "update": "KB5046732",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5036893",
             "architecture": "arm64"
         },
         {
             "version": "11-24H2",
-            "update": "KB5041865",
+            "update": "BASE",
             "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5046714",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5044273",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5039239",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5046665",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5033373",
-            "architecture": "amd64"
         },
         {
             "version": "1507",
@@ -56,18 +31,33 @@
             "architecture": "amd64"
         },
         {
-            "version": "1507",
-            "update": "KB5036925",
+            "version": "11-21H2",
+            "update": "KB5039213",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5035941",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5041580",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5036896",
             "architecture": "amd64"
         },
         {
             "version": "1809",
-            "update": "KB5034768",
+            "update": "KB5037765",
             "architecture": "arm64"
         },
         {
-            "version": "11-21H2",
-            "update": "KB5033369",
+            "version": "11-24H2",
+            "update": "KB5043080",
             "architecture": "arm64"
         },
         {
@@ -77,347 +67,12 @@
         },
         {
             "version": "21H2",
-            "update": "KB5036892",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5037423",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5033375",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5041571",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5043076",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5033371",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5046615",
-            "architecture": "amd64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5035941",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5041582",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5037771",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-23H2",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5046732",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5035845",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5036894",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5041580",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5046613",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5043145",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5039214",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1909",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5046617",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5034763",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5043131",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5046740",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5036979",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5040434",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5035853",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5039211",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5040529",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5034123",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "418cb9c8-dac2-4730-a9c6-d7e219f7692b",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5040527",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5041578",
-            "architecture": "amd64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5034203",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1903",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5043080",
-            "architecture": "arm64"
-        },
-        {
-            "version": "2004",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5041592",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5045594",
-            "architecture": "arm64"
-        },
-        {
-            "version": "20H2",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5041587",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5035942",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1709",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5044280",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5041782",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "384482b1-1f7c-444f-9997-d10fc0b852b4",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5036893",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5037770",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5040448",
-            "architecture": "amd64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5034843",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5036896",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
             "update": "KB5033372",
             "architecture": "arm64"
         },
         {
-            "version": "11-22H2",
-            "update": "KB5041585",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5040431",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5044380",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5040435",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5040442",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5035849",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5034122",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5039299",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5043067",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5033379",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5044284",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5043064",
-            "architecture": "amd64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5037849",
-            "architecture": "arm64"
-        },
-        {
             "version": "1607",
-            "update": "KB5037763",
+            "update": "KB5034119",
             "architecture": "amd64"
         },
         {
@@ -426,34 +81,29 @@
             "architecture": "amd64"
         },
         {
-            "version": "11-21H2",
-            "update": "KB5039213",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5034765",
-            "architecture": "amd64"
+            "version": "21H2",
+            "update": "KB5039211",
+            "architecture": "arm64"
         },
         {
             "version": "22H2",
-            "update": "KB5046714",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5044273",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5039239",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5046612",
+            "update": "KB5043131",
             "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5036894",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5039705",
+            "architecture": "arm64"
         },
         {
             "version": "1809",
@@ -461,63 +111,28 @@
             "architecture": "amd64"
         },
         {
-            "version": "11-24H2",
-            "update": "KB5043178",
+            "version": "11-Insider",
+            "update": "418cb9c8-dac2-4730-a9c6-d7e219f7692b",
             "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5039212",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5046633",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5034767",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5039302",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5039304",
-            "architecture": "arm64"
         },
         {
             "version": "21H2",
-            "update": "KB5036892",
+            "update": "KB5044273",
             "architecture": "arm64"
         },
         {
             "version": "11-22H2",
-            "update": "KB5033375",
+            "update": "KB5034123",
             "architecture": "arm64"
         },
         {
-            "version": "11-21H2",
-            "update": "KB5035854",
+            "version": "1809",
+            "update": "KB5037425",
             "architecture": "amd64"
         },
         {
-            "version": "22H2",
-            "update": "KB5040525",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5037853",
-            "architecture": "amd64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5041582",
+            "version": "11-Insider",
+            "update": "db0c1cf4-7f96-43af-83d7-e73fa7577309",
             "architecture": "arm64"
         },
         {
@@ -526,219 +141,19 @@
             "architecture": "amd64"
         },
         {
-            "version": "1809",
+            "version": "1909",
             "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5034121",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-23H2",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1803",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5035845",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5036894",
             "architecture": "arm64"
         },
         {
             "version": "11-22H2",
             "update": "KB5043145",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5039217",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5044285",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5034763",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5043131",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5039705",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5036980",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5037788",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5040427",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5044384",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5040529",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5035855",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5034123",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5040527",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5034203",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "fa99a281-d67b-405f-98d7-61cf235b525d",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5034204",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5043051",
-            "architecture": "amd64"
-        },
-        {
-            "version": "2004",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5041592",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5034848",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5035942",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5041773",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5034766",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5041587",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5034774",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "960c63e1-21e3-4a2e-8275-07afd6c6ff4f",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5037765",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5044280",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "906561ea-07d5-459c-9b01-60b2a32fb811",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5036893",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5034127",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5037770",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H1",
-            "update": "BASE",
             "architecture": "amd64"
         },
         {
             "version": "22H2",
-            "update": "KB5034843",
-            "architecture": "arm64"
+            "update": "KB5040525",
+            "architecture": "amd64"
         },
         {
             "version": "21H2",
@@ -746,33 +161,8 @@
             "architecture": "arm64"
         },
         {
-            "version": "21H2",
-            "update": "KB5037768",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5041585",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1607",
-            "update": "KB5044293",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5037425",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5034134",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5041865",
+            "version": "11-21H2",
+            "update": "KB5040431",
             "architecture": "amd64"
         },
         {
@@ -782,217 +172,47 @@
         },
         {
             "version": "11-Insider",
-            "update": "25896289-02b0-4af5-a70f-a001f24e76e6",
+            "update": "058e4d74-1949-4ecd-905c-06259bab48a6",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5034766",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5037763",
             "architecture": "amd64"
         },
         {
             "version": "1809",
             "update": "KB5035849",
-            "architecture": "arm64"
+            "architecture": "amd64"
         },
         {
-            "version": "1703",
-            "update": "BASE",
-            "architecture": "amd64"
+            "version": "1809",
+            "update": "KB5034127",
+            "architecture": "arm64"
         },
         {
             "version": "22H2",
-            "update": "KB5039299",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5043067",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5044284",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5043064",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5034768",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5033369",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5039213",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-Insider",
-            "update": "80580481-f9f9-4f7b-a9a4-a718675f0c53",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5041571",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5034765",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5043076",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1607",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5033371",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5043050",
-            "architecture": "amd64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5035941",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5037771",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5046732",
+            "update": "KB5037849",
             "architecture": "amd64"
         },
         {
             "version": "21H2",
-            "update": "KB5041580",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1507",
-            "update": "KB5039225",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5046613",
+            "update": "KB5040427",
             "architecture": "amd64"
         },
         {
             "version": "11-Insider",
-            "update": "fa3c2192-22bc-4abf-ac43-5f8e622fe25d",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5043178",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5039212",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5046633",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1909",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5039302",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5046617",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5035854",
-            "architecture": "arm64"
-        },
-        {
-            "version": "22H2",
-            "update": "KB5040525",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5046740",
+            "update": "4dc66cae-459f-42df-91cb-5df44739843a",
             "architecture": "amd64"
         },
         {
             "version": "22H2",
-            "update": "KB5036979",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5035853",
-            "architecture": "amd64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5039211",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5037853",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5040430",
-            "architecture": "amd64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "BASE",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-21H2",
-            "update": "KB5034121",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1803",
-            "update": "BASE",
+            "update": "KB5034843",
             "architecture": "arm64"
         },
         {
@@ -1001,63 +221,93 @@
             "architecture": "amd64"
         },
         {
-            "version": "11-24H2",
-            "update": "KB5043080",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5039217",
+            "version": "11-21H2",
+            "update": "KB5044280",
             "architecture": "arm64"
         },
         {
-            "version": "11-21H2",
+            "version": "11-24H2",
+            "update": "KB5039239",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H1",
             "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "22H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5034768",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5037423",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "a495c8ac-f626-4839-9c4f-231eb4ad5ce2",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5035854",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5043178",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5036979",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5041865",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5044284",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5043051",
             "architecture": "amd64"
         },
         {
             "version": "22H2",
             "update": "KB5045594",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5034121",
             "architecture": "amd64"
         },
         {
-            "version": "20H2",
-            "update": "BASE",
+            "version": "1607",
+            "update": "KB5041773",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "fa99a281-d67b-405f-98d7-61cf235b525d",
             "architecture": "amd64"
         },
         {
             "version": "11-22H2",
-            "update": "KB5044285",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1709",
-            "update": "BASE",
-            "architecture": "amd64"
-        },
-        {
-            "version": "1809",
-            "update": "KB5039705",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5036980",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5040427",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-24H2",
-            "update": "KB5044384",
-            "architecture": "arm64"
-        },
-        {
-            "version": "1511",
-            "update": "BASE",
+            "update": "KB5035853",
             "architecture": "amd64"
         },
         {
@@ -1066,23 +316,433 @@
             "architecture": "arm64"
         },
         {
+            "version": "11-22H2",
+            "update": "KB5044285",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5035942",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5041592",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5046633",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5040527",
+            "architecture": "arm64"
+        },
+        {
             "version": "1809",
-            "update": "KB5036896",
+            "update": "KB5033371",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5037771",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5039217",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "cf191367-54bf-4350-9b53-4e482ccefa52",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5041782",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5043064",
             "architecture": "amd64"
         },
         {
             "version": "11-22H2",
             "update": "KB5034848",
-            "architecture": "arm64"
-        },
-        {
-            "version": "21H2",
-            "update": "KB5033372",
             "architecture": "amd64"
         },
         {
             "version": "11-21H2",
-            "update": "KB5040431",
+            "update": "KB5033369",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5039213",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "25896289-02b0-4af5-a70f-a001f24e76e6",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "384482b1-1f7c-444f-9997-d10fc0b852b4",
+            "architecture": "arm64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5035941",
+            "architecture": "arm64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5039299",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5044384",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5036896",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "80580481-f9f9-4f7b-a9a4-a718675f0c53",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1803",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "1ddbb3b6-9ebd-4d4c-b9d7-4b0c39663fd0",
+            "architecture": "amd64"
+        },
+        {
+            "version": "2004",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "0b16470b-6e46-4214-8eaa-3fb3a5c3cccf",
+            "architecture": "arm64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5041582",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5037853",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5043131",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5036894",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5033375",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5037770",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5043050",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "ad88a90d-6688-45bd-873e-fc97c5ee8b09",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5034765",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5040525",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1709",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5046714",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5041571",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5040529",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5046665",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "906561ea-07d5-459c-9b01-60b2a32fb811",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5035849",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5034122",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5035858",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "9bc796dd-3eca-4553-8fb6-32b1cc1f0297",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5041585",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5036892",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5037849",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5034763",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1703",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1903",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5043067",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5041587",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5039225",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5034767",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5034768",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "e68186c9-9aae-4277-a769-6deb026cf05c",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1607",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1507",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5046612",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5036979",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5034123",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5043076",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5037768",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5041865",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5044284",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5037788",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5035853",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5034127",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5046633",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5039212",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5037771",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5039217",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-23H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5035845",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5036980",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5034203",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5043064",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5044280",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5040448",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5039304",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5039239",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H1",
+            "update": "BASE",
             "architecture": "amd64"
         },
         {
@@ -1091,13 +751,173 @@
             "architecture": "amd64"
         },
         {
-            "version": "11-21H2",
-            "update": "KB5034766",
+            "version": "11-24H2",
+            "update": "KB5046617",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5046740",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5039299",
             "architecture": "arm64"
         },
         {
-            "version": "1507",
+            "version": "11-24H2",
+            "update": "KB5044384",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "3aea992b-0595-4df0-b639-329bffa7f4dc",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5040442",
+            "architecture": "amd64"
+        },
+        {
+            "version": "20H2",
             "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "20H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5046613",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5037425",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5039302",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5046732",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5045594",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5036893",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5041582",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5033373",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5043145",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5046615",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5037770",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5040431",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5035855",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5033371",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5041580",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "fa3c2192-22bc-4abf-ac43-5f8e622fe25d",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5040434",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5037765",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1709",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5046714",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5040427",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5033369",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5043080",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5033372",
             "architecture": "amd64"
         },
         {
@@ -1107,17 +927,177 @@
         },
         {
             "version": "11-Insider",
-            "update": "058e4d74-1949-4ecd-905c-06259bab48a6",
-            "architecture": "arm64"
-        },
-        {
-            "version": "11-22H2",
-            "update": "KB5040442",
+            "update": "8e99fe48-06d3-4f0a-9a09-a849f7f2551c",
             "architecture": "amd64"
         },
         {
             "version": "1809",
-            "update": "KB5037765",
+            "update": "KB5041578",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5039211",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1809",
+            "update": "KB5039705",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5036925",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5036892",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "65ad0e64-c404-4506-be3a-f77ebe32bfaf",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5034763",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5044273",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "41748193-33d3-4ce3-a653-a3021dc01d01",
+            "architecture": "amd64"
+        },
+        {
+            "version": "2004",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5041587",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5043178",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1909",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "f5c87fb6-f98e-4465-8232-fa53c5ab1a78",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5033375",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5034121",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5040435",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5034774",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "4434228c-8a94-484f-9529-c231a78ffd5a",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5034766",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5041592",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "c782f4ff-3e71-4453-ac16-d0cab4d5c45d",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1607",
+            "update": "KB5044293",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "87fc0e98-760c-4c72-95b6-a9b04ecf0d9c",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5041571",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1507",
+            "update": "KB5034134",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5035942",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "1511",
+            "update": "BASE",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5040529",
+            "architecture": "amd64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5034843",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5034848",
             "architecture": "arm64"
         },
         {
@@ -1126,19 +1106,134 @@
             "architecture": "amd64"
         },
         {
+            "version": "1507",
+            "update": "KB5033379",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "a006b684-d11b-4ea8-b07a-b4694005ea04",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5039212",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5041585",
+            "architecture": "amd64"
+        },
+        {
             "version": "1809",
-            "update": "KB5034127",
+            "update": "KB5040430",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-23H2",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5035845",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5036980",
+            "architecture": "arm64"
+        },
+        {
+            "version": "22H2",
+            "update": "KB5034203",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5043067",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-21H2",
+            "update": "KB5035854",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "960c63e1-21e3-4a2e-8275-07afd6c6ff4f",
+            "architecture": "arm64"
+        },
+        {
+            "version": "1803",
+            "update": "BASE",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-Insider",
+            "update": "a9af177b-6bea-4ab5-92c7-48a8787ce5f8",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5046617",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5044380",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-24H2",
+            "update": "KB5046740",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5037853",
+            "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5040442",
             "architecture": "arm64"
         },
         {
             "version": "1607",
-            "update": "KB5034119",
+            "update": "KB5039214",
             "architecture": "amd64"
         },
         {
-            "version": "21H1",
-            "update": "BASE",
+            "version": "11-22H2",
+            "update": "KB5034765",
             "architecture": "arm64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5034204",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5044285",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5043076",
+            "architecture": "amd64"
+        },
+        {
+            "version": "21H2",
+            "update": "KB5037768",
+            "architecture": "amd64"
+        },
+        {
+            "version": "11-22H2",
+            "update": "KB5040527",
+            "architecture": "amd64"
         }
     ],
     "binaries": {
