@@ -30,6 +30,10 @@ use crate::{
 pub struct DatabaseIndex {
     pub oses: BTreeSet<OSVersion>,
     pub binaries: BTreeSet<String>,
+    /// Maps an OS path suffix ("version_update_architecture") to the set of
+    /// binaries that produced a non-empty `types` map for that OS version. Used
+    /// by the frontend to filter the binary dropdown on the type tabs.
+    pub binaries_with_types: BTreeMap<String, BTreeSet<String>>,
 }
 
 /// A version of Windows, defined as a triplet
@@ -68,7 +72,7 @@ pub async fn generate_databases(
     downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
     generate_index: bool,
     output_directory: &Path,
-) -> Result<()> {
+) -> Result<BTreeMap<String, BTreeSet<String>>> {
     const CONCURRENT_DB_GENERATIONS: usize = 16;
 
     let windiff_app = WinDiffApp::new()?;
@@ -76,34 +80,58 @@ pub async fn generate_databases(
     // Create directory tree if needed
     tokio::fs::create_dir_all(output_directory).await?;
     // Generate databases concurrently
-    futures::stream::iter(
-        downloaded_binaries
-            .iter()
-            .map(|(downloaded_pe, pdb_path)| async {
-                let windiff_app = &windiff_app;
-                generate_database_for_pe_version(
-                    cfg,
-                    windiff_app,
-                    downloaded_pe,
-                    pdb_path,
-                    output_directory,
+    let binaries_with_types = futures::stream::iter(downloaded_binaries.iter().map(
+        |(downloaded_pe, pdb_path)| async {
+            let windiff_app = &windiff_app;
+            let has_types = generate_database_for_pe_version(
+                cfg,
+                windiff_app,
+                downloaded_pe,
+                pdb_path,
+                output_directory,
+            )
+            .await?;
+            // Report the (OS suffix, binary name) pair when this version
+            // produced a non-empty type map.
+            Ok(has_types.then(|| {
+                (
+                    os_path_suffix(downloaded_pe),
+                    downloaded_pe.original_name.clone(),
                 )
-                .await?;
-                Ok(())
-            }),
-    )
+            }))
+        },
+    ))
     .buffer_unordered(CONCURRENT_DB_GENERATIONS)
     // Ignore errors and simply skip the corresponding files
-    .filter_map(|result: Result<()>| async { result.ok() })
-    .collect::<()>()
+    .filter_map(|result: Result<Option<(String, String)>>| async { result.ok().flatten() })
+    // Fold pairs into a map of OS suffix -> binaries with types
+    .fold(
+        BTreeMap::<String, BTreeSet<String>>::new(),
+        |mut acc, (os_suffix, binary_name)| async move {
+            acc.entry(os_suffix).or_default().insert(binary_name);
+            acc
+        },
+    )
     .await;
 
     if generate_index {
         // Generate database index
-        generate_database_index(downloaded_binaries, output_directory).await?;
+        generate_database_index(downloaded_binaries, &binaries_with_types, output_directory)
+            .await?;
     }
 
-    Ok(())
+    Ok(binaries_with_types)
+}
+
+/// Builds the "version_update_architecture" suffix used for database file names
+/// and as the key shared with the frontend's `osVersionToPathSuffix`.
+fn os_path_suffix(pe_version: &DownloadedPEVersion) -> String {
+    format!(
+        "{}_{}_{}",
+        pe_version.os_version,
+        pe_version.os_update,
+        pe_version.architecture.to_str()
+    )
 }
 
 async fn generate_database_for_pe_version(
@@ -112,7 +140,7 @@ async fn generate_database_for_pe_version(
     pe_version: &DownloadedPEVersion,
     pdb_path: &Option<PathBuf>,
     output_directory: &Path,
-) -> Result<()> {
+) -> Result<bool> {
     log::trace!(
         "Generating database for PE '{}_{}_{}_{}'",
         pe_version.original_name,
@@ -140,14 +168,12 @@ async fn generate_database_for_pe_version(
             .get(&pe_version.original_name)
             .ok_or_else(|| WinDiffError::FileNotFoundInConfiguration)?;
         let output_file = output_directory.join(format!(
-            "{}_{}_{}_{}.json.gz",
+            "{}_{}.json.gz",
             pe_version.original_name,
-            pe_version.os_version,
-            pe_version.os_update,
-            pe_version.architecture.to_str()
+            os_path_suffix(pe_version)
         ));
 
-        generate_database_for_pe(
+        let has_types = generate_database_for_pe(
             windiff_app,
             pe_version,
             pe,
@@ -158,7 +184,7 @@ async fn generate_database_for_pe_version(
         )
         .await?;
 
-        Ok(())
+        Ok(has_types)
     } else {
         Err(WinDiffError::UnsupportedExecutableFormat)
     }
@@ -172,7 +198,7 @@ async fn generate_database_for_pe(
     pdb: Option<Pdb<'_>>,
     extracted_information: &BinaryExtractedInformation,
     output_path: impl AsRef<Path>,
-) -> Result<()> {
+) -> Result<bool> {
     let mut database = BinaryDatabase::default();
     // Metadata
     database.metadata.name = pe_version.original_name.clone();
@@ -212,6 +238,8 @@ async fn generate_database_for_pe(
         }
     }
 
+    let has_types = !database.types.is_empty();
+
     // Serialize database
     let json_data = serde_json::to_vec(&database)?;
 
@@ -221,11 +249,12 @@ async fn generate_database_for_pe(
     gz.write_all(json_data.as_slice()).await?;
     gz.shutdown().await?;
 
-    Ok(())
+    Ok(has_types)
 }
 
 pub async fn generate_database_index(
     downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
+    binaries_with_types: &BTreeMap<String, BTreeSet<String>>,
     output_directory: &Path,
 ) -> Result<()> {
     log::trace!("Generating database index");
@@ -246,6 +275,7 @@ pub async fn generate_database_index(
             .iter()
             .map(|(pe_version, _)| pe_version.original_name.clone())
             .collect(),
+        binaries_with_types: binaries_with_types.clone(),
     };
 
     // Serialize index

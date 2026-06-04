@@ -68,13 +68,42 @@ const supportedBinariesForSyscalls: string[] = [
   "win32k.sys",
 ];
 
+// Filters the binary list depending on the active tab. The Syscalls tab keeps
+// only binaries we extract syscalls from; the type tabs keep only binaries that
+// have type information for the selected OS version(s) (the left version in
+// browse mode, the union of both versions in diff mode). A missing
+// `binariesWithTypes` map (older index files) disables type filtering.
+function filterBinariesForTab(
+  binaries: string[],
+  tab: Tab,
+  binariesWithTypes: { [osPathSuffix: string]: string[] } | undefined,
+  leftSuffix: string,
+  rightSuffix: string | null
+): string[] {
+  if (tab == Tab.Sycalls) {
+    return binaries.filter(
+      (binary) => supportedBinariesForSyscalls.indexOf(binary) > -1
+    );
+  }
+  if ((tab == Tab.TypeList || tab == Tab.Types) && binariesWithTypes) {
+    const allowed = new Set(binariesWithTypes[leftSuffix] ?? []);
+    if (rightSuffix !== null) {
+      (binariesWithTypes[rightSuffix] ?? []).forEach((binary) =>
+        allowed.add(binary)
+      );
+    }
+    return binaries.filter((binary) => allowed.has(binary));
+  }
+  return binaries;
+}
+
 export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   // Tab selection
   const [currentTabId, setCurrentTabId] = useState(Tab.Exports);
   // OS and binary selection
   let [selectedLeftOSVersionId, setSelectedLeftOSVersionId] = useState(0);
   let [selectedRightOSVersionId, setSelectedRightOSVersionId] = useState(0);
-  let [selectedBinaryId, setSelectedBinaryId] = useState(0);
+  let [selectedBinaryName, setSelectedBinaryName] = useState("");
   // Type selection
   let [selectedType, setSelectedType] = useState("");
   // Syscall options
@@ -142,7 +171,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   let rightFileName: string = "";
   let leftOSVersion: string = "";
   let rightOSVersion: string = "";
-  let selectedBinaryName: string = "";
+  let resolvedBinaryName: string = "";
   if (indexData) {
     // Prepare sorted lists for OS names and path suffixes used to fetch the
     // corresponding binary versions
@@ -168,22 +197,36 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
 
     // Sort binary names
     sortedBinaryNames = indexData.binaries.sort(compareStrings);
-    // Filter binary list if needed
-    if (currentTabId == Tab.Sycalls) {
-      sortedBinaryNames = sortedBinaryNames.filter((binary: string) => {
-        return supportedBinariesForSyscalls.indexOf(binary) > -1;
-      });
-    }
 
     leftOSVersion = sortedOSNames[selectedLeftOSVersionId];
     rightOSVersion = sortedOSNames[selectedRightOSVersionId];
-    selectedBinaryName = sortedBinaryNames[selectedBinaryId];
 
-    const binaryVersion = sortedOSPathSuffixes[selectedLeftOSVersionId];
-    leftFileName = `${selectedBinaryName}_${binaryVersion}.json.gz`;
+    const leftSuffix = sortedOSPathSuffixes[selectedLeftOSVersionId];
+    const rightSuffix =
+      mode == ExplorerMode.Diff
+        ? sortedOSPathSuffixes[selectedRightOSVersionId]
+        : null;
+
+    // Filter the binary list depending on the active tab and OS selection
+    sortedBinaryNames = filterBinariesForTab(
+      sortedBinaryNames,
+      currentTabId,
+      indexData.binaries_with_types,
+      leftSuffix,
+      rightSuffix
+    );
+
+    // Resolve the selected binary by name against the (possibly filtered) list,
+    // falling back to the first entry when the current one isn't available for
+    // the selected OS version(s).
+    resolvedBinaryName =
+      selectedBinaryName && sortedBinaryNames.includes(selectedBinaryName)
+        ? selectedBinaryName
+        : sortedBinaryNames[0] ?? "";
+
+    leftFileName = `${resolvedBinaryName}_${leftSuffix}.json.gz`;
     if (mode == ExplorerMode.Diff) {
-      const binaryVersion = sortedOSPathSuffixes[selectedRightOSVersionId];
-      rightFileName = `${selectedBinaryName}_${binaryVersion}.json.gz`;
+      rightFileName = `${resolvedBinaryName}_${sortedOSPathSuffixes[selectedRightOSVersionId]}.json.gz`;
     }
   }
 
@@ -220,20 +263,10 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
       if (idx !== -1) setSelectedRightOSVersionId(idx);
     }
 
-    // The binary dropdown is filtered to syscall-capable binaries on the
-    // Syscalls tab, so resolve the index against the same filtered list the
-    // render uses (otherwise the index points past the end of the filtered
-    // list and the field shows up empty). Derive the tab from the URL rather
-    // than `currentTabId` state to stay correct regardless of effect timing.
-    let bins = [...indexData.binaries].sort(compareStrings);
-    if (readParam(PARAM_TAB) === TAB_KEYS[Tab.Sycalls]) {
-      bins = bins.filter(
-        (binary) => supportedBinariesForSyscalls.indexOf(binary) > -1
-      );
-    }
+    // The binary selection is tracked by name, so it survives the per-tab and
+    // per-OS-version filtering of the dropdown without any index resolution.
     if (initialBin.current !== null) {
-      const idx = bins.indexOf(initialBin.current);
-      if (idx !== -1) setSelectedBinaryId(idx);
+      setSelectedBinaryName(initialBin.current);
     }
 
     // suppress unused variable warning
@@ -265,8 +298,8 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   }, [leftFileData]);
 
   // Keep URL in sync with all selections whenever anything changes.
-  // sortedOSPathSuffixes and selectedBinaryName are derived from indexData and
-  // selected*Id state which are already listed; omitting them avoids infinite
+  // sortedOSPathSuffixes and resolvedBinaryName are derived from indexData and
+  // the selection state which is already listed; omitting them avoids infinite
   // re-renders from new array refs on every render.
   useEffect(() => {
     if (!indexData || sortedOSPathSuffixes.length === 0) return;
@@ -278,7 +311,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
         mode === ExplorerMode.Diff
           ? sortedOSPathSuffixes[selectedRightOSVersionId] ?? null
           : null,
-      [PARAM_BIN]: selectedBinaryName || null,
+      [PARAM_BIN]: resolvedBinaryName || null,
       [PARAM_TYPE]: currentTabId === Tab.Types ? selectedType || null : null,
       [PARAM_SC_SORT]:
         currentTabId === Tab.Sycalls
@@ -295,7 +328,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     currentTabId,
     selectedLeftOSVersionId,
     selectedRightOSVersionId,
-    selectedBinaryId,
+    selectedBinaryName,
     selectedType,
     orderSyscallsByName,
     displaySyscallIds,
@@ -460,10 +493,10 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
           {rightOSCombobox}
 
           <DarkCombobox
-            selectedOption={selectedBinaryName}
+            selectedOption={resolvedBinaryName}
             options={sortedBinaryNames}
-            idOnChange={true}
-            onChange={(value) => setSelectedBinaryId(value)}
+            idOnChange={false}
+            onChange={(value) => setSelectedBinaryName(value)}
           />
 
           {typesCombobox}
