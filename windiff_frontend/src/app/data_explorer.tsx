@@ -216,7 +216,17 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
       if (idx !== -1) setSelectedRightOSVersionId(idx);
     }
 
-    const bins = [...indexData.binaries].sort(compareStrings);
+    // The binary dropdown is filtered to syscall-capable binaries on the
+    // Syscalls tab, so resolve the index against the same filtered list the
+    // render uses (otherwise the index points past the end of the filtered
+    // list and the field shows up empty). Derive the tab from the URL rather
+    // than `currentTabId` state to stay correct regardless of effect timing.
+    let bins = [...indexData.binaries].sort(compareStrings);
+    if (readParam(PARAM_TAB) === TAB_KEYS[Tab.Sycalls]) {
+      bins = bins.filter(
+        (binary) => supportedBinariesForSyscalls.indexOf(binary) > -1
+      );
+    }
     if (initialBin.current !== null) {
       const idx = bins.indexOf(initialBin.current);
       if (idx !== -1) setSelectedBinaryId(idx);
