@@ -644,6 +644,14 @@ function DiffView({
       modifiedLanguage={language}
       original={oldRevision}
       modified={newRevision}
+      // @monaco-editor/react disposes the original/modified TextModels before
+      // disposing the DiffEditorWidget on unmount; monaco-editor >= 0.52 throws
+      // "TextModel got disposed before DiffEditorWidget model got reset" in that
+      // ordering. Keeping the models lets the widget's own dispose() reset its
+      // model reference first, avoiding the crash (e.g. on Browse<->Diff toggles
+      // and React StrictMode's mount/unmount/remount in dev).
+      keepCurrentOriginalModel
+      keepCurrentModifiedModel
     />
   );
 }
