@@ -1,4 +1,5 @@
 import { Tab } from "@headlessui/react";
+import type { JSX } from "react";
 
 export default function DarkTabs({
   tabs,
@@ -19,7 +20,7 @@ export default function DarkTabs({
               className={({ selected }) =>
                 classNames(
                   "w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700",
-                  "ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
+                  "ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
                   selected
                     ? "bg-white shadow"
                     : "text-blue-100 hover:bg-white/[0.12] hover:text-white"

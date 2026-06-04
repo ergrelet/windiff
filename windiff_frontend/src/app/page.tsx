@@ -25,6 +25,7 @@ export default function Home() {
   // Hydrate mode from URL after mount (avoids SSR hydration mismatch)
   useEffect(() => {
     if (readParam(PARAM_MODE) === MODE_DIFF) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: defers URL-derived state to post-mount to avoid hydration mismatch
       setCurrentNavigationButton(NavigationButton.Diffing);
     }
   }, []);

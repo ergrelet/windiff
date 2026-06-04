@@ -10,19 +10,19 @@ lto = true
 structopt = { version = "0.3", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-thiserror = "1.0"
+thiserror = "2.0"
 tokio = { version = "1.28.0", features = ["full"] }
 futures = "0.3"
 url = "2.3"
-reqwest = { version = "0.11", default-features = false, features = ["stream", "rustls-tls"] }
-async-compression = { version = "0.3", features = ["gzip", "tokio"] }
-tempdir = "0.3"
-goblin = "0.6"
+reqwest = { version = "0.13", default-features = false, features = ["stream", "rustls"] }
+async-compression = { version = "0.4", features = ["gzip", "tokio"] }
+tempfile = "3"
+goblin = "0.10"
 enumflags2 = { version = "0.7", features = ["serde"] }
 hex = "0.4"
 pdb = { git = "https://github.com/ergrelet/pdb", tag = "0.8.0-resym01" }
 resym_core = { git = "https://github.com/ergrelet/resym", tag = "v0.4.0" }
 crossbeam-channel = "0.5"
 log = "0.4"
-env_logger = "0.10"
+env_logger = "0.11"
 bytes = "1.4"

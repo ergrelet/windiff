@@ -1,5 +1,5 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
+import { Fragment, type JSX } from "react";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 
 export default function AboutModal({
@@ -52,7 +52,7 @@ export default function AboutModal({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
+            <div className="fixed inset-0 bg-black/25" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">

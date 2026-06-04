@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, type JSX } from "react";
 import { Transition, Combobox } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
@@ -32,7 +32,7 @@ export default function DarkCombobox({
       <div className="relative mt-1">
         <Combobox.Input
           onChange={(event) => setQuery(event.target.value)}
-          className="relative w-full cursor-default rounded-lg bg-blue-900 text-gray-50 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+          className="relative w-full cursor-default rounded-lg bg-blue-900 text-gray-50 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
         />
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
           <ChevronUpDownIcon
@@ -49,13 +49,13 @@ export default function DarkCombobox({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Combobox.Options className="z-50 absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-800 text-gray-50 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          <Combobox.Options className="z-50 absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-800 text-gray-50 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
             {filteredOptions.map((option, id) => (
               <Combobox.Option
                 key={id}
-                className={({ active }) =>
+                className={({ focus }) =>
                   `relative cursor-default select-none py-2 pl-4 pr-4 ${
-                    active ? "bg-gray-900 text-gray-300" : "text-gray-50"
+                    focus ? "bg-gray-900 text-gray-300" : "text-gray-50"
                   }`
                 }
                 value={idOnChange ? option.id : option.value}

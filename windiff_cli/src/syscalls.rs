@@ -119,7 +119,7 @@ fn extract_syscalls_from_service_table(
 ) -> Result<Vec<(u32, String)>> {
     // Determine the service table's content (RVAs vs VAs)
     let service_table_contains_rva: bool =
-        does_service_table_contain_rva(pe.image_base as u64, pe_data, symbols, service_table_info);
+        does_service_table_contain_rva(pe.image_base, pe_data, symbols, service_table_info);
 
     // Determine the size of elements in the service table
     let size_of_table_element = if service_table_contains_rva {
@@ -146,7 +146,7 @@ fn extract_syscalls_from_service_table(
         } else {
             // This service table contains virtual addresses
             let syscall_impl_va = u64::from_le_bytes(syscall_impl_offset_bytes.try_into()?);
-            let syscall_impl_rva = (syscall_impl_va - pe.image_base as u64) as u32;
+            let syscall_impl_rva = (syscall_impl_va - pe.image_base) as u32;
             let symbol_name = symbols
                 .get(&syscall_impl_rva)
                 .ok_or_else(|| WinDiffError::SystemServiceTableParsingError)?;
@@ -181,6 +181,8 @@ fn does_service_table_contain_rva(
 
 /// Convert an RVA to a file offset
 fn rva_to_offset(rva: usize, pe: &pe::PE<'_>) -> Result<usize> {
+    let mut parse_options = pe::options::ParseOptions::default();
+    parse_options.resolve_rva = true;
     pe::utils::find_offset(
         rva,
         &pe.sections,
@@ -189,7 +191,7 @@ fn rva_to_offset(rva: usize, pe: &pe::PE<'_>) -> Result<usize> {
             .ok_or_else(|| WinDiffError::MissingExecutableOptionalHeader)?
             .windows_fields
             .file_alignment,
-        &pe::options::ParseOptions { resolve_rva: true },
+        &parse_options,
     )
     .ok_or_else(|| WinDiffError::MissingExecutableOptionalHeader)
 }

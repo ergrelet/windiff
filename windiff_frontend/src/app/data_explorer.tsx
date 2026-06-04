@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type JSX } from "react";
 import useSWR from "swr";
 import { Editor, DiffEditor } from "@monaco-editor/react";
 import pako from "pako";
@@ -103,6 +103,9 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     initialBin.current = readParam(PARAM_BIN);
     initialType.current = readParam(PARAM_TYPE);
 
+    // Intentional: hydrate state from URL params once after mount to avoid SSR
+    // hydration mismatches. Disabling set-state-in-effect for this block.
+    /* eslint-disable react-hooks/set-state-in-effect */
     const tabParam = readParam(PARAM_TAB);
     const tabIndex = TAB_KEYS.indexOf(tabParam as (typeof TAB_KEYS)[number]);
     if (tabIndex !== -1) {
@@ -123,6 +126,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     if (scNames !== null) {
       setDisplaySyscallNames(scNames === "1");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   // Fetch index content
@@ -322,8 +326,9 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
         typeList = Object.keys(leftFileData.types);
       }
       if (selectedType.length == 0) {
-        // Select the first element of the list by default
-        selectedType = typeList.values().next().value;
+        // Select the first element of the list by default for this render
+        // eslint-disable-next-line react-hooks/immutability -- intentional: local render-time default, not a state mutation
+        selectedType = typeList.values().next().value ?? "";
       }
       if (currentTabId == Tab.Types) {
         return (

@@ -49,8 +49,8 @@ integrated into WinDiff automatically.
 
 ### Prerequisites
 
-- Rust 1.68 or superior
-- Node.js 16.8 or superior
+- Rust 1.85 or superior
+- Node.js 20.9 or superior
 
 ### Command-Line
 

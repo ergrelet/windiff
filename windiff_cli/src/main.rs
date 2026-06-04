@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
 async fn low_storage_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<()> {
     let mut download_binaries_acc = vec![];
     for pe_name in cfg.binaries.keys() {
-        let tmp_directory = tempdir::TempDir::new(PACKAGE_NAME)?;
+        let tmp_directory = tempfile::Builder::new().prefix(PACKAGE_NAME).tempdir()?;
         let tmp_directory_path = tmp_directory.path();
 
         log::info!("Downloading binaries for '{}' ...", pe_name);
@@ -78,7 +78,7 @@ async fn low_storage_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<
 }
 
 async fn normal_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<()> {
-    let tmp_directory = tempdir::TempDir::new(PACKAGE_NAME)?;
+    let tmp_directory = tempfile::Builder::new().prefix(PACKAGE_NAME).tempdir()?;
     let tmp_directory_path = tmp_directory.path();
 
     // Download requested PEs
