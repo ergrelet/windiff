@@ -6,6 +6,7 @@ import {
   XMarkIcon,
   Bars3Icon,
   QuestionMarkCircleIcon,
+  LinkIcon,
 } from "@heroicons/react/24/solid";
 import Image from "next/image";
 
@@ -18,6 +19,14 @@ export default function TopNavBar({
   buttons: any[];
 }): JSX.Element {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [permalinkCopied, setPermalinkCopied] = useState(false);
+
+  const handleCopyPermalink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setPermalinkCopied(true);
+      setTimeout(() => setPermalinkCopied(false), 2000);
+    });
+  };
 
   return (
     <>
@@ -81,7 +90,19 @@ export default function TopNavBar({
                     </div>
                   </div>
                 </div>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                <div className="absolute inset-y-0 right-0 flex items-center gap-2 pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+                  <button
+                    type="button"
+                    className="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                    onClick={handleCopyPermalink}
+                    title={permalinkCopied ? "Copied!" : "Copy permalink"}
+                  >
+                    <span className="sr-only">Copy permalink</span>
+                    <LinkIcon
+                      className={`h-6 w-6 transition-colors ${permalinkCopied ? "text-green-400" : ""}`}
+                      aria-hidden="true"
+                    />
+                  </button>
                   <button
                     type="button"
                     className="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"

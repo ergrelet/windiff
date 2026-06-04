@@ -2,14 +2,16 @@ import { Tab } from "@headlessui/react";
 
 export default function DarkTabs({
   tabs,
+  selectedIndex,
   onChange,
 }: {
   tabs: string[];
+  selectedIndex?: number;
   onChange?(value: any): void;
 }): JSX.Element {
   return (
     <div className="w-full">
-      <Tab.Group onChange={onChange}>
+      <Tab.Group selectedIndex={selectedIndex} onChange={onChange}>
         <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
           {tabs.map((tab, id) => (
             <Tab

@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import TopNavBar from "./navbar";
 import DataExplorer, { ExplorerMode } from "./data_explorer";
+import {
+  readParam,
+  writeParams,
+  PARAM_MODE,
+  MODE_BROWSE,
+  MODE_DIFF,
+} from "./permalink";
 
 enum NavigationButton {
   Browsing = 0,
@@ -14,15 +21,31 @@ export default function Home() {
   const [currentNavigationButton, setCurrentNavigationButton] = useState(
     NavigationButton.Browsing
   );
+
+  // Hydrate mode from URL after mount (avoids SSR hydration mismatch)
+  useEffect(() => {
+    if (readParam(PARAM_MODE) === MODE_DIFF) {
+      setCurrentNavigationButton(NavigationButton.Diffing);
+    }
+  }, []);
+
+  const setMode = (button: NavigationButton) => {
+    setCurrentNavigationButton(button);
+    writeParams({
+      [PARAM_MODE]:
+        button === NavigationButton.Diffing ? MODE_DIFF : MODE_BROWSE,
+    });
+  };
+
   const navigationButtons = [
     {
       name: "Browse Files",
-      onClick: () => setCurrentNavigationButton(NavigationButton.Browsing),
+      onClick: () => setMode(NavigationButton.Browsing),
       current: currentNavigationButton == NavigationButton.Browsing,
     },
     {
       name: "Diff Files",
-      onClick: () => setCurrentNavigationButton(NavigationButton.Diffing),
+      onClick: () => setMode(NavigationButton.Diffing),
       current: currentNavigationButton == NavigationButton.Diffing,
     },
   ];

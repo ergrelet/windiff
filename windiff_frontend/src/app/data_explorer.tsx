@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { Editor, DiffEditor } from "@monaco-editor/react";
 import pako from "pako";
@@ -13,6 +13,19 @@ import {
   WinDiffIndexOS,
 } from "./windiff_types";
 import OptionsMenu from "./options_menu";
+import {
+  readParam,
+  writeParams,
+  TAB_KEYS,
+  PARAM_TAB,
+  PARAM_LHS,
+  PARAM_RHS,
+  PARAM_BIN,
+  PARAM_TYPE,
+  PARAM_SC_SORT,
+  PARAM_SC_IDS,
+  PARAM_SC_NAMES,
+} from "./permalink";
 
 const compressedJsonFetcher = async (url: string) => {
   const response = await fetch(url);
@@ -28,7 +41,7 @@ export enum ExplorerMode {
   Diff = 1,
 }
 
-enum Tab {
+export enum Tab {
   Exports = 0,
   Symbols = 1,
   Modules = 2,
@@ -73,6 +86,45 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     setDisplaySyscallNames(true);
   }
 
+  // Snapshot of initial URL params — read once at mount, stable for the session
+  const initialLhs = useRef<string | null>(null);
+  const initialRhs = useRef<string | null>(null);
+  const initialBin = useRef<string | null>(null);
+  const initialType = useRef<string | null>(null);
+
+  // Hydration flags so we only apply URL → state once per data load
+  const indexHydrated = useRef(false);
+  const fileHydrated = useRef(false);
+
+  // Read all URL params at mount and hydrate fields available without data
+  useEffect(() => {
+    initialLhs.current = readParam(PARAM_LHS);
+    initialRhs.current = readParam(PARAM_RHS);
+    initialBin.current = readParam(PARAM_BIN);
+    initialType.current = readParam(PARAM_TYPE);
+
+    const tabParam = readParam(PARAM_TAB);
+    const tabIndex = TAB_KEYS.indexOf(tabParam as (typeof TAB_KEYS)[number]);
+    if (tabIndex !== -1) {
+      setCurrentTabId(tabIndex);
+    }
+
+    const scSort = readParam(PARAM_SC_SORT);
+    if (scSort !== null) {
+      setOrderSyscallsByName(scSort !== "id");
+    }
+
+    const scIds = readParam(PARAM_SC_IDS);
+    if (scIds !== null) {
+      setDisplaySyscallIds(scIds === "1");
+    }
+
+    const scNames = readParam(PARAM_SC_NAMES);
+    if (scNames !== null) {
+      setDisplaySyscallNames(scNames === "1");
+    }
+  }, []);
+
   // Fetch index content
   const { data: indexData, error: indexError } = useSWR<WinDiffIndexData>(
     indexFilePath,
@@ -80,6 +132,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
   );
 
   let sortedOSNames: string[] = [];
+  let sortedOSPathSuffixes: string[] = [];
   let sortedBinaryNames: string[] = [];
   let leftFileName: string = "";
   let rightFileName: string = "";
@@ -94,7 +147,6 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
       numeric: true,
       sensitivity: "base",
     });
-    let sortedOSPathSuffixes: string[] = [];
     [sortedOSNames, sortedOSPathSuffixes] = indexData.oses
       .map((osVersion: WinDiffIndexOS) => [
         osVersionToHumanString(osVersion),
@@ -131,14 +183,112 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     }
   }
 
+  // Hydrate OS and binary selections from URL once the index is loaded
+  useEffect(() => {
+    if (!indexData || indexHydrated.current) return;
+    indexHydrated.current = true;
+
+    let collator = new Intl.Collator(undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+    const [names, suffixes] = indexData.oses
+      .map((os: WinDiffIndexOS) => [
+        osVersionToHumanString(os),
+        osVersionToPathSuffix(os),
+      ])
+      .sort((a: string[], b: string[]) => collator.compare(a[0], b[0]))
+      .reduce(
+        (acc: string[][], cur: string[]) => {
+          acc[0].push(cur[0]);
+          acc[1].push(cur[1]);
+          return acc;
+        },
+        [[], []]
+      );
+
+    if (initialLhs.current !== null) {
+      const idx = suffixes.indexOf(initialLhs.current);
+      if (idx !== -1) setSelectedLeftOSVersionId(idx);
+    }
+    if (initialRhs.current !== null) {
+      const idx = suffixes.indexOf(initialRhs.current);
+      if (idx !== -1) setSelectedRightOSVersionId(idx);
+    }
+
+    const bins = [...indexData.binaries].sort(compareStrings);
+    if (initialBin.current !== null) {
+      const idx = bins.indexOf(initialBin.current);
+      if (idx !== -1) setSelectedBinaryId(idx);
+    }
+
+    // suppress unused variable warning
+    void names;
+  }, [indexData]);
+
+  // `keepPreviousData` keeps the editor mounted with the previously loaded data
+  // while a new file is fetched, so we never feed Monaco a transient "Loading..."
+  // placeholder once it has real content (see the editor render below).
   let { data: leftFileData, error: leftFileError } = useSWR<WinDiffFileData>(
     `/${leftFileName}`,
-    compressedJsonFetcher
+    compressedJsonFetcher,
+    { keepPreviousData: true }
   );
   let { data: rightFileData, error: rightFileError } = useSWR<WinDiffFileData>(
     `/${rightFileName}`,
-    compressedJsonFetcher
+    compressedJsonFetcher,
+    { keepPreviousData: true }
   );
+
+  // Hydrate selected type from URL once the left file is loaded
+  useEffect(() => {
+    if (!leftFileData || fileHydrated.current) return;
+    fileHydrated.current = true;
+
+    if (initialType.current !== null && initialType.current in leftFileData.types) {
+      setSelectedType(initialType.current);
+    }
+  }, [leftFileData]);
+
+  // Keep URL in sync with all selections whenever anything changes.
+  // sortedOSPathSuffixes and selectedBinaryName are derived from indexData and
+  // selected*Id state which are already listed; omitting them avoids infinite
+  // re-renders from new array refs on every render.
+  useEffect(() => {
+    if (!indexData || sortedOSPathSuffixes.length === 0) return;
+
+    writeParams({
+      [PARAM_TAB]: TAB_KEYS[currentTabId],
+      [PARAM_LHS]: sortedOSPathSuffixes[selectedLeftOSVersionId] ?? null,
+      [PARAM_RHS]:
+        mode === ExplorerMode.Diff
+          ? sortedOSPathSuffixes[selectedRightOSVersionId] ?? null
+          : null,
+      [PARAM_BIN]: selectedBinaryName || null,
+      [PARAM_TYPE]: currentTabId === Tab.Types ? selectedType || null : null,
+      [PARAM_SC_SORT]:
+        currentTabId === Tab.Sycalls
+          ? orderSyscallsByName
+            ? "name"
+            : "id"
+          : null,
+      [PARAM_SC_IDS]:
+        currentTabId === Tab.Sycalls ? (displaySyscallIds ? "1" : "0") : null,
+      [PARAM_SC_NAMES]:
+        currentTabId === Tab.Sycalls ? (displaySyscallNames ? "1" : "0") : null,
+    });
+  }, [ // eslint-disable-line react-hooks/exhaustive-deps
+    currentTabId,
+    selectedLeftOSVersionId,
+    selectedRightOSVersionId,
+    selectedBinaryId,
+    selectedType,
+    orderSyscallsByName,
+    displaySyscallIds,
+    displaySyscallNames,
+    mode,
+    indexData,
+  ]);
 
   if (indexError) {
     return <div>Failed to load</div>;
@@ -261,12 +411,26 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
       ? "grid grid-cols-3 gap-2"
       : "grid grid-cols-2 gap-2";
   const editorLanguage = currentTabId == Tab.Types ? "cpp" : "plaintext";
+
+  // Only mount the editor once the required data is available (or has errored),
+  // so Monaco's models are never created from a transient "Loading..." string.
+  // Doing so previously caused the modified (right) pane to stay stuck on
+  // "Loading..." on some browsers (Firefox), because @monaco-editor/react drops
+  // value updates that arrive while the diff editor is still initializing.
+  const leftReady = leftFileData !== undefined || leftFileError !== undefined;
+  const rightReady =
+    mode == ExplorerMode.Browse ||
+    rightFileData !== undefined ||
+    rightFileError !== undefined;
+  const editorReady = leftReady && rightReady;
+
   return (
     <div className="flex flex-row justify-center items-center">
       <div className="max-w-6xl w-full space-y-2 py-2 pl-10 pr-10">
         {/* Tabs used to select the displayed data */}
         <DarkTabs
           tabs={tabNames}
+          selectedIndex={currentTabId}
           onChange={(value) => setCurrentTabId(value)}
         />
         {/* Comboboxes used to select the binary versions */}
@@ -293,12 +457,18 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
         </div>
 
         {/* Text editor */}
-        <WinDiffEditor
-          mode={mode}
-          language={editorLanguage}
-          leftData={leftData}
-          rightData={rightData}
-        />
+        {editorReady ? (
+          <WinDiffEditor
+            mode={mode}
+            language={editorLanguage}
+            leftData={leftData}
+            rightData={rightData}
+          />
+        ) : (
+          <div className="h-[70vh] flex items-center justify-center text-gray-400">
+            Loading...
+          </div>
+        )}
       </div>
     </div>
   );
