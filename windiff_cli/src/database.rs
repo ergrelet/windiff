@@ -30,10 +30,67 @@ use crate::{
 pub struct DatabaseIndex {
     pub oses: BTreeSet<OSVersion>,
     pub binaries: BTreeSet<String>,
-    /// Maps an OS path suffix ("version_update_architecture") to the set of
-    /// binaries that produced a non-empty `types` map for that OS version. Used
-    /// by the frontend to filter the binary dropdown on the type tabs.
+    /// Each map associates an OS path suffix ("version_update_architecture") to
+    /// the set of binaries that produced non-empty data of the corresponding
+    /// kind for that OS version. Used by the frontend to filter the binary
+    /// dropdown on the Debug Symbols, Modules and (Reconstructed) Types tabs.
+    /// These are PDB-derived and independent: a public PDB commonly has symbols
+    /// but no private types, so a binary can appear in one map and not another.
+    pub binaries_with_symbols: BTreeMap<String, BTreeSet<String>>,
+    pub binaries_with_modules: BTreeMap<String, BTreeSet<String>>,
     pub binaries_with_types: BTreeMap<String, BTreeSet<String>>,
+}
+
+/// Per-OS-version sets of binaries that produced non-empty PDB-derived data,
+/// grouped by information kind. Built while generating databases and serialized
+/// into the [`DatabaseIndex`].
+#[derive(Debug, Default)]
+pub struct BinariesWithInfo {
+    pub symbols: BTreeMap<String, BTreeSet<String>>,
+    pub modules: BTreeMap<String, BTreeSet<String>>,
+    pub types: BTreeMap<String, BTreeSet<String>>,
+}
+
+impl BinariesWithInfo {
+    /// Records, for a single database, which information kinds were non-empty.
+    fn record(&mut self, os_suffix: &str, binary_name: &str, presence: ExtractedInfoPresence) {
+        let insert = |map: &mut BTreeMap<String, BTreeSet<String>>| {
+            map.entry(os_suffix.to_owned())
+                .or_default()
+                .insert(binary_name.to_owned());
+        };
+        if presence.has_symbols {
+            insert(&mut self.symbols);
+        }
+        if presence.has_modules {
+            insert(&mut self.modules);
+        }
+        if presence.has_types {
+            insert(&mut self.types);
+        }
+    }
+
+    /// Merges another instance into this one (used to accumulate across the
+    /// per-binary passes of low-storage mode).
+    pub fn merge(&mut self, other: BinariesWithInfo) {
+        for (suffix, binaries) in other.symbols {
+            self.symbols.entry(suffix).or_default().extend(binaries);
+        }
+        for (suffix, binaries) in other.modules {
+            self.modules.entry(suffix).or_default().extend(binaries);
+        }
+        for (suffix, binaries) in other.types {
+            self.types.entry(suffix).or_default().extend(binaries);
+        }
+    }
+}
+
+/// Which information kinds a generated database ended up containing.
+#[derive(Debug, Clone, Copy, Default)]
+struct ExtractedInfoPresence {
+    has_symbols: bool,
+    has_modules: bool,
+    has_types: bool,
 }
 
 /// A version of Windows, defined as a triplet
@@ -72,7 +129,7 @@ pub async fn generate_databases(
     downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
     generate_index: bool,
     output_directory: &Path,
-) -> Result<BTreeMap<String, BTreeSet<String>>> {
+) -> Result<BinariesWithInfo> {
     const CONCURRENT_DB_GENERATIONS: usize = 16;
 
     let windiff_app = WinDiffApp::new()?;
@@ -80,10 +137,10 @@ pub async fn generate_databases(
     // Create directory tree if needed
     tokio::fs::create_dir_all(output_directory).await?;
     // Generate databases concurrently
-    let binaries_with_types = futures::stream::iter(downloaded_binaries.iter().map(
+    let binaries_with_info = futures::stream::iter(downloaded_binaries.iter().map(
         |(downloaded_pe, pdb_path)| async {
             let windiff_app = &windiff_app;
-            let has_types = generate_database_for_pe_version(
+            let presence = generate_database_for_pe_version(
                 cfg,
                 windiff_app,
                 downloaded_pe,
@@ -91,24 +148,23 @@ pub async fn generate_databases(
                 output_directory,
             )
             .await?;
-            // Report the (OS suffix, binary name) pair when this version
-            // produced a non-empty type map.
-            Ok(has_types.then(|| {
-                (
-                    os_path_suffix(downloaded_pe),
-                    downloaded_pe.original_name.clone(),
-                )
-            }))
+            // Report which information kinds this version produced, alongside
+            // the OS suffix and binary name they belong to.
+            Ok((
+                os_path_suffix(downloaded_pe),
+                downloaded_pe.original_name.clone(),
+                presence,
+            ))
         },
     ))
     .buffer_unordered(CONCURRENT_DB_GENERATIONS)
     // Ignore errors and simply skip the corresponding files
-    .filter_map(|result: Result<Option<(String, String)>>| async { result.ok().flatten() })
-    // Fold pairs into a map of OS suffix -> binaries with types
+    .filter_map(|result: Result<(String, String, ExtractedInfoPresence)>| async { result.ok() })
+    // Fold into per-kind maps of OS suffix -> binaries with that information
     .fold(
-        BTreeMap::<String, BTreeSet<String>>::new(),
-        |mut acc, (os_suffix, binary_name)| async move {
-            acc.entry(os_suffix).or_default().insert(binary_name);
+        BinariesWithInfo::default(),
+        |mut acc, (os_suffix, binary_name, presence)| async move {
+            acc.record(&os_suffix, &binary_name, presence);
             acc
         },
     )
@@ -116,11 +172,10 @@ pub async fn generate_databases(
 
     if generate_index {
         // Generate database index
-        generate_database_index(downloaded_binaries, &binaries_with_types, output_directory)
-            .await?;
+        generate_database_index(downloaded_binaries, &binaries_with_info, output_directory).await?;
     }
 
-    Ok(binaries_with_types)
+    Ok(binaries_with_info)
 }
 
 /// Builds the "version_update_architecture" suffix used for database file names
@@ -140,7 +195,7 @@ async fn generate_database_for_pe_version(
     pe_version: &DownloadedPEVersion,
     pdb_path: &Option<PathBuf>,
     output_directory: &Path,
-) -> Result<bool> {
+) -> Result<ExtractedInfoPresence> {
     log::trace!(
         "Generating database for PE '{}_{}_{}_{}'",
         pe_version.original_name,
@@ -173,7 +228,7 @@ async fn generate_database_for_pe_version(
             os_path_suffix(pe_version)
         ));
 
-        let has_types = generate_database_for_pe(
+        let presence = generate_database_for_pe(
             windiff_app,
             pe_version,
             pe,
@@ -184,7 +239,7 @@ async fn generate_database_for_pe_version(
         )
         .await?;
 
-        Ok(has_types)
+        Ok(presence)
     } else {
         Err(WinDiffError::UnsupportedExecutableFormat)
     }
@@ -198,7 +253,7 @@ async fn generate_database_for_pe(
     pdb: Option<Pdb<'_>>,
     extracted_information: &BinaryExtractedInformation,
     output_path: impl AsRef<Path>,
-) -> Result<bool> {
+) -> Result<ExtractedInfoPresence> {
     let mut database = BinaryDatabase::default();
     // Metadata
     database.metadata.name = pe_version.original_name.clone();
@@ -238,7 +293,11 @@ async fn generate_database_for_pe(
         }
     }
 
-    let has_types = !database.types.is_empty();
+    let presence = ExtractedInfoPresence {
+        has_symbols: !database.symbols.is_empty(),
+        has_modules: !database.modules.is_empty(),
+        has_types: !database.types.is_empty(),
+    };
 
     // Serialize database
     let json_data = serde_json::to_vec(&database)?;
@@ -249,12 +308,12 @@ async fn generate_database_for_pe(
     gz.write_all(json_data.as_slice()).await?;
     gz.shutdown().await?;
 
-    Ok(has_types)
+    Ok(presence)
 }
 
 pub async fn generate_database_index(
     downloaded_binaries: &[(DownloadedPEVersion, Option<PathBuf>)],
-    binaries_with_types: &BTreeMap<String, BTreeSet<String>>,
+    binaries_with_info: &BinariesWithInfo,
     output_directory: &Path,
 ) -> Result<()> {
     log::trace!("Generating database index");
@@ -275,7 +334,9 @@ pub async fn generate_database_index(
             .iter()
             .map(|(pe_version, _)| pe_version.original_name.clone())
             .collect(),
-        binaries_with_types: binaries_with_types.clone(),
+        binaries_with_symbols: binaries_with_info.symbols.clone(),
+        binaries_with_modules: binaries_with_info.modules.clone(),
+        binaries_with_types: binaries_with_info.types.clone(),
     };
 
     // Serialize index

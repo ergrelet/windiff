@@ -53,6 +53,19 @@ npm run lint         # ESLint check
 ./ci/build_frontend.sh
 ```
 
+### Local/dev files
+
+The repo's root `local/` folder is git-ignored — keep machine-local, never-committed
+files there (scratch data, experiment output, and trimmed-down test configs). For
+example, a small DB config for quick CLI runs lives at `local/db_configuration_mini.json`:
+
+```bash
+cd windiff_cli
+cargo run --release -- ../local/db_configuration_mini.json ../windiff_frontend/public/
+```
+
+Do not commit anything under `local/`, and do not reference it from CI or committed code.
+
 ## Architecture
 
 ### Data generation (windiff_cli)

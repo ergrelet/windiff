@@ -69,14 +69,16 @@ const supportedBinariesForSyscalls: string[] = [
 ];
 
 // Filters the binary list depending on the active tab. The Syscalls tab keeps
-// only binaries we extract syscalls from; the type tabs keep only binaries that
-// have type information for the selected OS version(s) (the left version in
-// browse mode, the union of both versions in diff mode). A missing
-// `binariesWithTypes` map (older index files) disables type filtering.
+// only binaries we extract syscalls from; the Debug Symbols, Modules and
+// (Reconstructed) Types tabs keep only binaries that have the corresponding
+// PDB-derived data for the selected OS version(s) (the left version in browse
+// mode, the union of both versions in diff mode). These presence maps are
+// independent, so a binary can show on one tab but not another. A missing map
+// (older index files) disables filtering for that tab.
 function filterBinariesForTab(
   binaries: string[],
   tab: Tab,
-  binariesWithTypes: { [osPathSuffix: string]: string[] } | undefined,
+  indexData: WinDiffIndexData,
   leftSuffix: string,
   rightSuffix: string | null
 ): string[] {
@@ -85,16 +87,30 @@ function filterBinariesForTab(
       (binary) => supportedBinariesForSyscalls.indexOf(binary) > -1
     );
   }
-  if ((tab == Tab.TypeList || tab == Tab.Types) && binariesWithTypes) {
-    const allowed = new Set(binariesWithTypes[leftSuffix] ?? []);
-    if (rightSuffix !== null) {
-      (binariesWithTypes[rightSuffix] ?? []).forEach((binary) =>
-        allowed.add(binary)
-      );
-    }
-    return binaries.filter((binary) => allowed.has(binary));
+
+  // Pick the per-OS-version presence map matching the active tab, if any
+  let presenceMap: { [osPathSuffix: string]: string[] } | undefined;
+  switch (tab) {
+    case Tab.Symbols:
+      presenceMap = indexData.binaries_with_symbols;
+      break;
+    case Tab.Modules:
+      presenceMap = indexData.binaries_with_modules;
+      break;
+    case Tab.TypeList:
+    case Tab.Types:
+      presenceMap = indexData.binaries_with_types;
+      break;
   }
-  return binaries;
+  if (!presenceMap) {
+    return binaries;
+  }
+
+  const allowed = new Set(presenceMap[leftSuffix] ?? []);
+  if (rightSuffix !== null) {
+    (presenceMap[rightSuffix] ?? []).forEach((binary) => allowed.add(binary));
+  }
+  return binaries.filter((binary) => allowed.has(binary));
 }
 
 export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
@@ -211,7 +227,7 @@ export default function DataExplorer({ mode }: { mode: ExplorerMode }) {
     sortedBinaryNames = filterBinariesForTab(
       sortedBinaryNames,
       currentTabId,
-      indexData.binaries_with_types,
+      indexData,
       leftSuffix,
       rightSuffix
     );

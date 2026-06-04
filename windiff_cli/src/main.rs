@@ -8,8 +8,6 @@ mod resym_frontend;
 mod syscalls;
 mod winbindex;
 
-use std::collections::{BTreeMap, BTreeSet};
-
 use database::generate_database_index;
 use env_logger::Env;
 use structopt::StructOpt;
@@ -17,7 +15,7 @@ use structopt::StructOpt;
 use crate::{
     cli::WinDiffOpt,
     configuration::WinDiffConfiguration,
-    database::generate_databases,
+    database::{generate_databases, BinariesWithInfo},
     download::{download_all_binaries, download_all_pdbs, download_single_binary},
     error::Result,
 };
@@ -47,7 +45,7 @@ async fn main() -> Result<()> {
 
 async fn low_storage_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<()> {
     let mut download_binaries_acc = vec![];
-    let mut binaries_with_types_acc: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut binaries_with_info_acc = BinariesWithInfo::default();
     for pe_name in cfg.binaries.keys() {
         let tmp_directory = tempfile::Builder::new().prefix(PACKAGE_NAME).tempdir()?;
         let tmp_directory_path = tmp_directory.path();
@@ -64,16 +62,11 @@ async fn low_storage_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<
             download_all_pdbs(downloaded_pes, tmp_directory_path, opt.concurrent_downloads).await;
         // Extract information from PEs and generate databases for all versions
         log::info!("Generating databases for '{}' ...", pe_name);
-        let binaries_with_types =
+        let binaries_with_info =
             generate_databases(&cfg, &downloaded_binaries, false, &opt.output_directory).await?;
 
-        // Merge the per-binary type-presence map into the global one
-        for (os_suffix, binaries) in binaries_with_types {
-            binaries_with_types_acc
-                .entry(os_suffix)
-                .or_default()
-                .extend(binaries);
-        }
+        // Merge the per-binary information maps into the global one
+        binaries_with_info_acc.merge(binaries_with_info);
 
         // Move binary info into the global vec
         download_binaries_acc.append(&mut downloaded_binaries);
@@ -82,7 +75,7 @@ async fn low_storage_mode(opt: WinDiffOpt, cfg: WinDiffConfiguration) -> Result<
     // Generate database index from the global vec
     generate_database_index(
         &download_binaries_acc,
-        &binaries_with_types_acc,
+        &binaries_with_info_acc,
         &opt.output_directory,
     )
     .await?;

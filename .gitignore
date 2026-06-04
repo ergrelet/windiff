@@ -1,0 +1,2 @@
+# Dev/local-only files (e.g. test configs, scratch data); never committed
+/local/
