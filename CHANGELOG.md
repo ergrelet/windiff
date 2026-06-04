@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-04
+
+### Added
+
+- Shareable permalinks to specific views in `windiff_frontend`
+
+### Changed
+
+- Update all dependencies to latest and fix API breakage
+- Filter binaries without type information from the type-related tabs
+- Filter the Debug Symbols and Modules tabs by data presence
+
+### Fixed
+
+- Fix Monaco diff editor disposal crash on unmount
+- Fix empty binary field when restoring a Syscalls-tab permalink
+
 ## [1.3.1] - 2024-04-19
 
 ### Fixed
