@@ -107,6 +107,38 @@ GitHub Actions workflows live in `.github/workflows/`:
 - **Git tag `v*` (`release.yml`):** builds release binaries for `x86_64-unknown-linux-musl` and `x86_64-pc-windows-msvc`
 - **Daily cron (`scheduled.yml`):** runs `ci/fetch_update.py` to sync `ci/db_configuration.json` with the latest Winbindex data
 
+## Agent Skill: version diff analysis
+
+This repo bundles a Claude Code skill at `.claude/skills/windiff-version-diff-analysis/`
+for security-research diffing of two Windows versions. **Prefer it over ad-hoc
+analysis** whenever the user wants to compare Windows builds — e.g. "diff ntoskrnl
+between 21H2 and 24H2", "what new syscalls/mitigations/ETW providers appeared",
+"what changed in win32k.sys / ci.dll", or "what's new that matters for EDR /
+anti-cheat / vulnerability research". The skill auto-triggers on these, but if it
+hasn't, read its `SKILL.md` and follow it rather than reinventing the workflow.
+
+What it provides:
+
+- `SKILL.md` — 5-step workflow: scope versions/binaries → generate databases with
+  `windiff_cli` → diff → interpret with Windows-internals knowledge → write an
+  audience-tagged report (EDR / anti-cheat / vulnerability research).
+- `scripts/make_config.py` — builds a minimal `windiff_cli` config for just the two
+  versions/binaries being compared (avoids regenerating the whole live config).
+- `scripts/windiff_diff.py` — deterministic diff of one binary across two OS
+  suffixes (`version_update_architecture`). Emits a stderr summary and JSON on
+  stdout: added/removed exports, symbols, modules, syscalls (with renumbering
+  detection), and types. It hides anonymous-type id churn as noise but resolves
+  real anonymous-bitfield changes back to `<parent>::<member>` (e.g. new
+  `_EPROCESS::MitigationFlags2Values` bits) under `types.resolved_member_changes`.
+- `references/` — `windows-internals.md` (API prefixes, mitigation/feature/telemetry
+  reasoning), `windows-components.md` (per-binary roles), `report-template.md`.
+
+Use `scripts/windiff_diff.py --list <db_dir>` to discover available OS suffixes.
+When databases already exist (e.g. in `windiff_frontend/public/`), point the diff
+script there instead of regenerating. Skill artifacts live under
+`.claude/skills/...`; iteration/eval scratch output belongs in the git-ignored
+`local/` folder, not committed.
+
 ## External Data Sources
 
 - **Winbindex** (`https://github.com/m417z/winbindex`) — binary index and download infrastructure

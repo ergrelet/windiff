@@ -75,3 +75,45 @@ The configuration file used to generate the data for the live version of WinDiff
 is located here: `ci/db_configuration.json`, but you can customize it or use
 your own. PRs aimed at adding new binaries to track in the live configuration
 are welcome.
+
+## Security Research Skill (Claude Code)
+
+The repository ships an [agent skill](https://docs.claude.com/en/docs/claude-code/skills)
+that turns WinDiff into an automated security-research assistant. Instead of
+clicking through the diff UI yourself, you can ask [Claude Code](https://claude.com/claude-code)
+to compare two Windows versions and write up what changed — and *why it matters*.
+
+The skill lives in `.claude/skills/windiff-version-diff-analysis/`. When you open
+this repo in Claude Code, it loads automatically and triggers on requests like:
+
+- "Diff `ntoskrnl.exe` between 21H2 and 24H2 and tell me what's new."
+- "What new syscalls or process mitigations appeared in this Windows update?"
+- "What changed in `win32k.sys` / `ci.dll` that matters for EDR or anti-cheat?"
+
+Given two versions, the skill drives `windiff_cli` to generate the databases,
+diffs them, and produces a report that interprets the raw symbol/type/syscall
+delta using Windows-internals knowledge (API prefixes, component roles), framed
+for three audiences: **anti-malware/EDR developers**, **anti-cheat developers**,
+and **vulnerability researchers**. It highlights new syscalls, new mitigation
+flags (including bits hidden inside anonymous bitfield structs, linked back to
+their parent like `_EPROCESS::MitigationFlags2Values`), new ETW/threat-intel
+telemetry and kernel callbacks, code-integrity changes, and brand-new components.
+
+### Using the diff helper without Claude Code
+
+The skill's core diff logic is a standalone Python script with no dependencies,
+usable on its own against any databases produced by `windiff_cli`:
+
+```bash
+# List the OS versions / binaries available in a database directory
+python3 .claude/skills/windiff-version-diff-analysis/scripts/windiff_diff.py \
+  windiff_frontend/public --list
+
+# Diff one binary between two OS versions ("version_update_architecture" suffixes)
+python3 .claude/skills/windiff-version-diff-analysis/scripts/windiff_diff.py \
+  windiff_frontend/public ntoskrnl.exe 21H2_BASE_amd64 22H2_BASE_amd64
+```
+
+It prints a human-readable summary to stderr and structured JSON (added/removed
+exports, symbols, modules, syscalls, and resolved type/bitfield changes) to
+stdout. See the skill's `SKILL.md` for the full workflow and reference material.

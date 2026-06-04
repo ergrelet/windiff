@@ -1,0 +1,27 @@
+{
+  "skill_name": "windiff-version-diff-analysis",
+  "notes": "Evals point at the prebuilt databases in windiff_frontend/public/ (21H2 vs 22H2, amd64) so runs are deterministic and don't need network. Iteration 2 broadens the analysis lens beyond mitigations to any new security-relevant feature/component framed for three audiences: anti-malware/EDR, anti-cheat, and vulnerability researchers. This delta really contains non-mitigation signal (EtwTimLogRedirectionTrustPolicy = an EtwTi threat-intel telemetry event; Se*CodeIntegrityOriginClaimForFileObject = CI provenance), so a good report should surface and audience-tag those, not just the Redirection Guard mitigation.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "ntoskrnl-security-writeup",
+      "prompt": "I've already got WinDiff databases generated under windiff_frontend/public/ for Windows 21H2 and 22H2 (amd64, update BASE). Diff ntoskrnl.exe between those two builds and give me a security-research writeup of what changed. I care about more than just mitigation flags: call out any new security-relevant feature or component and tell me who it matters to — anti-malware/EDR, anti-cheat, or vulnerability researchers. Explain what the changes are likely for, not just a list of names.",
+      "expected_output": "A structured report that uses windiff_diff.py, filters _unnamed_ noise, and interprets findings with Windows internals knowledge. Beyond the Redirection Guard mitigation, it should surface non-mitigation security signal in this delta — notably the new EtwTi threat-intelligence telemetry routine (EtwTimLogRedirectionTrustPolicy) as EDR-relevant, and the Se*CodeIntegrityOriginClaimForFileObject CI-provenance routines — and tag findings by audience. Should be honest that there are 0 new syscalls.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "ntdll-attack-surface",
+      "prompt": "Compare ntdll.dll between the 21H2 and 22H2 amd64 builds in windiff_frontend/public/ and tell me what new native API / attack surface or security-relevant feature Microsoft added or removed, and who each change matters to (EDR, anti-cheat, or vuln research). I care about the security angle.",
+      "expected_output": "A report that diffs ntdll.dll, groups new symbols by prefix (Nt/Zw/Ldr/Rtl/Etw/Csr), distinguishes user-reachable stubs from internal helpers, interprets security relevance, tags audiences, and notes confidence. Should recognize the 13 new symbols are WIL feature-flag staging, not real API surface.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "cross-binary-thorough",
+      "prompt": "Using the prebuilt WinDiff databases under windiff_frontend/public/ (21H2 vs 22H2, amd64), do a thorough cross-binary diff of ntoskrnl.exe and ntdll.dll and write up the security-relevant deltas for anti-malware/EDR, anti-cheat, and vulnerability-research audiences. Pair up related changes across the two binaries, and don't limit yourself to mitigation flags — include new telemetry, callbacks, components, etc.",
+      "expected_output": "A combined report covering both binaries with a cross-binary pairing section, a dedicated section for security-relevant features/components beyond mitigations (telemetry/EtwTi, CI provenance, etc.), audience tagging, highest-signal-first ordering, interpretations with confidence, and noise discounted.",
+      "files": []
+    }
+  ]
+}
