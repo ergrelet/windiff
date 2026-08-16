@@ -109,13 +109,16 @@ GitHub Actions workflows live in `.github/workflows/`:
 
 ## Agent Skill: version diff analysis
 
-This repo bundles a Claude Code skill at `.claude/skills/windiff-version-diff-analysis/`
-for security-research diffing of two Windows versions. **Prefer it over ad-hoc
-analysis** whenever the user wants to compare Windows builds — e.g. "diff ntoskrnl
-between 21H2 and 24H2", "what new syscalls/mitigations/ETW providers appeared",
-"what changed in win32k.sys / ci.dll", or "what's new that matters for EDR /
-anti-cheat / vulnerability research". The skill auto-triggers on these, but if it
-hasn't, read its `SKILL.md` and follow it rather than reinventing the workflow.
+This repo bundles a harness-agnostic Agent Skill at
+`skills/windiff-version-diff-analysis/` for security-research diffing of two
+Windows versions. Claude Code discovers it through `.claude/skills/`; Codex
+discovers it through `.agents/skills/`. Both paths are symlinks to the same
+canonical package. **Prefer it over ad-hoc analysis**
+whenever the user wants to compare Windows builds — e.g. "diff ntoskrnl between
+21H2 and 24H2", "what new syscalls/mitigations/ETW providers appeared", "what
+changed in win32k.sys / ci.dll", or "what's new that matters for EDR / anti-cheat
+/ vulnerability research". The skill auto-triggers on these, but if it hasn't,
+read its `SKILL.md` and follow it rather than reinventing the workflow.
 
 What it provides:
 
@@ -136,8 +139,9 @@ What it provides:
 Use `scripts/windiff_diff.py --list <db_dir>` to discover available OS suffixes.
 When databases already exist (e.g. in `windiff_frontend/public/`), point the diff
 script there instead of regenerating. Skill artifacts live under
-`.claude/skills/...`; iteration/eval scratch output belongs in the git-ignored
-`local/` folder, not committed.
+`skills/windiff-version-diff-analysis/`; iteration/eval scratch output belongs in
+the git-ignored `local/` folder, not committed. Keep the `.claude/skills/` and
+`.agents/skills/` aliases as symlinks so the package has one source of truth.
 
 ## External Data Sources
 

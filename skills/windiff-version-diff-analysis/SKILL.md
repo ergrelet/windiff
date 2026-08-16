@@ -1,25 +1,14 @@
 ---
 name: windiff-version-diff-analysis
 description: >-
-  Generate and analyze a diff between two Windows versions (or two patch levels of
-  one version) for security research, using the WinDiff CLI in this repo. Use this
-  whenever the user wants to compare Windows builds to find what Microsoft changed
-  between versions — new or removed syscalls, new exported/internal kernel routines,
-  added structures or struct fields, new security mitigation flags (process/thread
-  mitigations, CFG/CET/XFG, Code Integrity / ci.dll, kCET, win32k lockdown), AND any
-  other new security-relevant feature or component: new kernel notification/callback
-  surface (Ps/Ob/Cm callbacks, ETW providers and the EtwTi threat-intel channel,
-  minifilter/altitude hooks), new telemetry, ELAM/AMSI/PPL/anti-tamper changes, and
-  brand-new drivers or modules. Frame findings for three audiences — anti-malware /
-  EDR developers, anti-cheat developers, and vulnerability researchers. Triggers on
-  requests like "diff ntoskrnl between 21H2 and 23H2", "what new syscalls were added
-  in 24H2", "what changed in win32k.sys / ci.dll between these builds", "find new
-  mitigation flags", "what new ETW providers or kernel callbacks appeared", "what's
-  new that matters for EDR / anti-cheat", or "analyze the attack surface added in
-  this Windows update". The analysis must interpret the raw diff with Windows
-  internals knowledge (Nt/Zw/Ps/Ke/Mm/Ob/Se/Cm/Etw/Ci prefixes, the roles of
-  ntoskrnl.exe, ntdll.dll, win32k*.sys, ci.dll, cng.sys) to explain the likely
-  intent and security relevance of each change, not just list symbols.
+  Generate and interpret security-research diffs between Windows versions or patch
+  levels using this repo's WinDiff CLI and databases. Use when comparing Windows
+  builds or binaries such as ntoskrnl.exe, ntdll.dll, win32k*.sys, ci.dll, or cng.sys
+  to find changed syscalls, symbols, types, mitigation flags, callbacks, ETW/EtwTi
+  telemetry, code-integrity behavior, drivers, or attack surface. Explain likely
+  intent and security relevance with Windows-internals knowledge, and frame findings
+  for anti-malware/EDR, anti-cheat, and vulnerability-research audiences rather than
+  returning an uninterpreted symbol list.
 ---
 
 # WinDiff Version Diff Analysis
@@ -28,10 +17,30 @@ Compare two Windows builds and turn the raw symbol/type/syscall delta into a
 security-research report: what was added, what it probably *does*, and why it
 matters for attack surface, exploitation, or defense.
 
-This skill runs inside the **WinDiff** repo. It uses `windiff_cli` to generate
-the per-binary JSON databases, then diffs and interprets them. The interpretation
-is the point — anyone can list new symbols; the value is explaining intent from
-Windows internals conventions.
+Run this skill from a **WinDiff** repository checkout. It uses `windiff_cli` to
+generate the per-binary JSON databases, then diffs and interprets them. The
+interpretation is the point: explain intent from Windows internals conventions
+instead of merely listing symbols.
+
+## Locate bundled resources
+
+Resolve all `scripts/` and `references/` paths relative to this `SKILL.md`, not
+relative to the current working directory and not through a harness-specific
+directory such as `.claude/` or `.agents/`. Before running a bundled script, set
+`SKILL_DIR` to the absolute directory containing this file. The examples below
+assume that has been done:
+
+```bash
+SKILL_DIR="<absolute directory containing this SKILL.md>"
+```
+
+If separate shell-tool calls do not share environment, substitute that absolute
+path for `$SKILL_DIR` in each command instead of relying on prior shell state.
+
+Also identify the repository root (the directory containing `windiff_cli/`,
+`windiff_frontend/`, and `ci/`) and run repository commands from there. Keep
+generated configs, databases, and analysis artifacts under its git-ignored
+`local/` directory.
 
 ## Workflow
 
@@ -45,8 +54,8 @@ Establish, asking the user only if genuinely ambiguous:
   in filenames is `version_update_architecture`, e.g. `11-24H2_KB5074105_amd64`.
 - **Binaries** to compare. Default to the security-relevant core when the user is
   vague: `ntoskrnl.exe`, `ntdll.dll`, `win32k.sys`, `win32kbase.sys`,
-  `win32kfull.sys`, `ci.dll`, `cng.sys`. See `references/windows-components.md`
-  for what each one governs.
+  `win32kfull.sys`, `ci.dll`, `cng.sys`. Read
+  `$SKILL_DIR/references/windows-components.md` for what each one governs.
 - **Focus**: syscalls, mitigation flags, new attack surface, a specific
   component/feature, etc. This steers interpretation, not data generation.
 
@@ -57,10 +66,11 @@ Establish, asking the user only if genuinely ambiguous:
 
 Write a **minimal** config containing only the two OS versions and the chosen
 binaries, then run the CLI into a scratch output dir (keep it under the repo's
-git-ignored `local/`). Use `scripts/make_config.py` to build the config:
+git-ignored `local/`). Use `$SKILL_DIR/scripts/make_config.py` to build the
+config:
 
 ```bash
-python3 .claude/skills/windiff-version-diff-analysis/scripts/make_config.py \
+python3 "$SKILL_DIR/scripts/make_config.py" \
   --os "21H2:BASE:amd64" --os "11-24H2:KB5074105:amd64" \
   --binary ntoskrnl.exe --binary ntdll.dll --binary win32k.sys --binary ci.dll \
   > local/windiff_diff_config.json
@@ -71,22 +81,23 @@ cargo run --release -- --low-storage-mode \
 ```
 
 This downloads PEs from Winbindex and PDBs from MSDL, so it **needs network
-access** and takes minutes per binary. `--low-storage-mode` keeps memory bounded.
-If the CLI fails for one OS (a build may be missing from Winbindex), report which
-version/update is unavailable and suggest the nearest tracked one from
-`ci/db_configuration.json`.
+access** and takes minutes per binary. Follow the active harness's normal
+permission or approval flow for networked commands. `--low-storage-mode` keeps
+memory bounded. If the CLI fails for one OS (a build may be missing from
+Winbindex), report which version/update is unavailable and suggest the nearest
+tracked one from `ci/db_configuration.json`.
 
 If the user says the databases already exist (e.g. in `windiff_frontend/public/`),
 skip generation and point the diff script at that directory instead.
 
 ### 3. Diff each binary
 
-`scripts/windiff_diff.py` does the deterministic set/text diff so you never hand-
-compute it. Run it per binary; it prints a summary to stderr and structured JSON
-to stdout.
+`$SKILL_DIR/scripts/windiff_diff.py` does the deterministic set/text diff so you
+never hand-compute it. Run it per binary; it prints a summary to stderr and
+structured JSON to stdout.
 
 ```bash
-python3 .claude/skills/windiff-version-diff-analysis/scripts/windiff_diff.py \
+python3 "$SKILL_DIR/scripts/windiff_diff.py" \
   local/windiff_diff_out ntoskrnl.exe 21H2_BASE_amd64 11-24H2_KB5074105_amd64 \
   > local/diff_ntoskrnl.json
 ```
@@ -117,24 +128,26 @@ structs/unions, so the `path` may be several `::` levels deep.
   enum values. Still sanity-check against `resolved_member_changes` for the bits.
 - Exports differing only by ordinal/decoration are usually not meaningful.
 - Syscall renumbering with no name change is a rebuild artifact (see
-  `references/windows-internals.md` §3).
+  `$SKILL_DIR/references/windows-internals.md` §3).
 
 ### 4. Interpret with Windows internals knowledge — the core of the analysis
 
 For every meaningful addition, infer **what it is and why it matters**. Do not
-just relay names. Read `references/windows-internals.md` for the reasoning toolkit:
-API prefixes (`Nt`/`Zw`/`Ps`/`Ke`/`Mm`/`Ob`/`Se`/`Cm`/`Alpc`/`Etw`/`Ci`/`Bcrypt`),
-naming patterns for mitigations, the structures where security flags live
-(`_PS_MITIGATION_OPTIONS`, `_KPROCESS`/`_EPROCESS` flag bitfields, `_SEP_TOKEN_*`,
-CI policy structs), and — equally important — the **non-mitigation** security
-surface: kernel notification/callback registration, ETW providers and the
-`EtwTi` threat-intelligence channel, ELAM/AMSI, PPL and anti-tamper, minifilter
-hooks, and entirely new drivers/modules. Read `references/windows-components.md`
-for per-binary roles.
+just relay names. Read `$SKILL_DIR/references/windows-internals.md` for the
+reasoning toolkit: API prefixes
+(`Nt`/`Zw`/`Ps`/`Ke`/`Mm`/`Ob`/`Se`/`Cm`/`Alpc`/`Etw`/`Ci`/`Bcrypt`), naming
+patterns for mitigations, the structures where security flags live
+(`_PS_MITIGATION_OPTIONS`, `_KPROCESS`/`_EPROCESS` flag bitfields,
+`_SEP_TOKEN_*`, CI policy structs), and — equally important — the
+**non-mitigation** security surface: kernel notification/callback registration,
+ETW providers and the `EtwTi` threat-intelligence channel, ELAM/AMSI, PPL and
+anti-tamper, minifilter hooks, and entirely new drivers/modules. Read
+`$SKILL_DIR/references/windows-components.md` for per-binary roles.
 
 Mitigations are only one of several things worth surfacing. Cast a wide net for
 any new security-relevant **feature or component** and frame it for whichever of
-these audiences it serves — `references/windows-internals.md` §7 maps the signals:
+these audiences it serves — `$SKILL_DIR/references/windows-internals.md` §7 maps
+the signals:
 
 - **Anti-malware / EDR developers** — new ETW providers/events (especially
   `EtwTi*` / Microsoft-Windows-Threat-Intelligence), new `Ps`/`Ob`/`Cm`
@@ -156,18 +169,22 @@ could confirm (reverse the routine, check public symbols, diff the disassembly).
 
 ### 5. Write the report
 
-Use the structure in `references/report-template.md`. Lead with the highest-signal
-security findings (new syscalls, mitigation flags, new ETW/callback surface, new
-components), not an alphabetical dump. Group related symbols by component and
-feature. Every nontrivial item gets an interpretation, not just a name, and a note
-on which audience (EDR / anti-cheat / vuln research) it matters to. The report
-includes a dedicated section for security-relevant features and components beyond
-mitigations so EDR and anti-cheat findings aren't buried.
+Use the structure in `$SKILL_DIR/references/report-template.md`. Lead with the
+highest-signal security findings (new syscalls, mitigation flags, new
+ETW/callback surface, new components), not an alphabetical dump. Group related
+symbols by component and feature. Every nontrivial item gets an interpretation,
+not just a name, and a note on which audience (EDR / anti-cheat / vuln research)
+it matters to. The report includes a dedicated section for security-relevant
+features and components beyond mitigations so EDR and anti-cheat findings aren't
+buried.
 
 ## Quick reference
 
-- `scripts/make_config.py` — build a minimal WinDiff config for the two versions
-- `scripts/windiff_diff.py` — diff one binary across two OS suffixes (JSON + summary)
-- `references/windows-internals.md` — prefixes, mitigation structures, how to infer intent
-- `references/windows-components.md` — role of each tracked binary
-- `references/report-template.md` — the report format
+- `$SKILL_DIR/scripts/make_config.py` — build a minimal WinDiff config for the
+  two versions
+- `$SKILL_DIR/scripts/windiff_diff.py` — diff one binary across two OS suffixes
+  (JSON + summary)
+- `$SKILL_DIR/references/windows-internals.md` — prefixes, mitigation structures,
+  how to infer intent
+- `$SKILL_DIR/references/windows-components.md` — role of each tracked binary
+- `$SKILL_DIR/references/report-template.md` — the report format

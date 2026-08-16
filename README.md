@@ -76,15 +76,20 @@ is located here: `ci/db_configuration.json`, but you can customize it or use
 your own. PRs aimed at adding new binaries to track in the live configuration
 are welcome.
 
-## Security Research Skill (Claude Code)
+## Security Research Agent Skill
 
-The repository ships an [agent skill](https://docs.claude.com/en/docs/claude-code/skills)
-that turns WinDiff into an automated security-research assistant. Instead of
-clicking through the diff UI yourself, you can ask [Claude Code](https://claude.com/claude-code)
-to compare two Windows versions and write up what changed — and *why it matters*.
+The repository ships an [Agent Skill](https://agentskills.io/) that turns
+WinDiff into an automated security-research assistant. Instead of clicking
+through the diff UI yourself, you can ask
+[Claude Code](https://code.claude.com/docs/en/skills) or
+[Codex](https://learn.chatgpt.com/docs/build-skills) to compare two Windows
+versions and write up what changed — and *why it matters*.
 
-The skill lives in `.claude/skills/windiff-version-diff-analysis/`. When you open
-this repo in Claude Code, it loads automatically and triggers on requests like:
+The canonical skill lives in `skills/windiff-version-diff-analysis/`. Discovery
+aliases under `.claude/skills/` and `.agents/skills/` make the same files
+available to both harnesses without maintaining duplicate copies. When you open
+this repo in either harness, the skill loads automatically and triggers on
+requests like:
 
 - "Diff `ntoskrnl.exe` between 21H2 and 24H2 and tell me what's new."
 - "What new syscalls or process mitigations appeared in this Windows update?"
@@ -104,18 +109,20 @@ between 25H2 and 26H1 and tell me what's new. Write your report in a markdown
 file":
 [ntoskrnl_25H2_to_26H1.md](./docs/claude_report_example/ntoskrnl_25H2_to_26H1.md)
 
-### Using the diff helper without Claude Code
+### Using the diff helper without an agent
 
 The skill's core diff logic is a standalone Python script with no dependencies,
 usable on its own against any databases produced by `windiff_cli`:
 
 ```bash
+SKILL_DIR=skills/windiff-version-diff-analysis
+
 # List the OS versions / binaries available in a database directory
-python3 .claude/skills/windiff-version-diff-analysis/scripts/windiff_diff.py \
+python3 "$SKILL_DIR/scripts/windiff_diff.py" \
   windiff_frontend/public --list
 
 # Diff one binary between two OS versions ("version_update_architecture" suffixes)
-python3 .claude/skills/windiff-version-diff-analysis/scripts/windiff_diff.py \
+python3 "$SKILL_DIR/scripts/windiff_diff.py" \
   windiff_frontend/public ntoskrnl.exe 21H2_BASE_amd64 22H2_BASE_amd64
 ```
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "WinDiff Version Analysis"
+  short_description: "Interpret security-relevant Windows build diffs"
+  default_prompt: "Use $windiff-version-diff-analysis to compare two Windows builds and explain the security-relevant changes."
