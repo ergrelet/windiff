@@ -109,6 +109,10 @@ between 25H2 and 26H1 and tell me what's new. Write your report in a markdown
 file":
 [ntoskrnl_25H2_to_26H1.md](./docs/claude_report_example/ntoskrnl_25H2_to_26H1.md)
 
+For curated base-version diff documentation, see the [Windows 10 version-diff
+series](./docs/windows10-base-version-diffs/README.md) and the [Windows 11
+version-diff series](./docs/windows11-base-version-diffs/README.md).
+
 ### Using the diff helper without an agent
 
 The skill's core diff logic is a standalone Python script with no dependencies,
